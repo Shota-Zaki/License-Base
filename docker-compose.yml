@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: license-base-postgres
+    environment:
+      POSTGRES_USER: license_base
+      POSTGRES_PASSWORD: license_base_password
+      POSTGRES_DB: license_base
+    ports:
+      - "5432:5432"
+    volumes:
+      - license_base_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U license_base -d license_base"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  license_base_postgres_data:
