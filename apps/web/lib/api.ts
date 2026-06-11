@@ -42,8 +42,7 @@ export type PracticeQuestion = {
   isFree: boolean;
   accessLevel: string;
   unit: { slug: string; title: string };
-  choices: Array<{ id: string; label: string; body: string; isCorrect?: boolean }>;
-  explanation: { bodyMd: string } | null;
+  choices: Array<{ id: string; label: string; body: string }>;
   sources: Array<{ sourceType: string; sourceName: string | null; sourceUrl: string | null; licenseNote: string | null; verificationStatus: string }>;
 };
 
@@ -96,12 +95,11 @@ export const fallbackPracticeSet: PracticeSetDetail = {
       accessLevel: 'FREE',
       unit: { slug: 'fe-technology', title: 'テクノロジ系' },
       choices: [
-        { id: 'fallback-a', label: 'ア', body: '1011', isCorrect: false },
-        { id: 'fallback-b', label: 'イ', body: '1101', isCorrect: true },
-        { id: 'fallback-c', label: 'ウ', body: '1110', isCorrect: false },
-        { id: 'fallback-d', label: 'エ', body: '1001', isCorrect: false }
+        { id: 'fallback-a', label: 'ア', body: '1011' },
+        { id: 'fallback-b', label: 'イ', body: '1101' },
+        { id: 'fallback-c', label: 'ウ', body: '1110' },
+        { id: 'fallback-d', label: 'エ', body: '1001' }
       ],
-      explanation: { bodyMd: '13は8 + 4 + 1で表せます。2進数では8の位、4の位、1の位が1になり、2の位は0になるため1101です。' },
       sources: [{ sourceType: 'original', sourceName: 'fallback', sourceUrl: null, licenseNote: 'MVP用の自作サンプル問題です。', verificationStatus: 'original' }]
     }
   ]
