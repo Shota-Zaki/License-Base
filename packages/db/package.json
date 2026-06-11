@@ -13,6 +13,7 @@
     "@prisma/client": "5.22.0"
   },
   "devDependencies": {
+    "@types/node": "latest",
     "prisma": "5.22.0",
     "tsx": "latest",
     "typescript": "latest"
