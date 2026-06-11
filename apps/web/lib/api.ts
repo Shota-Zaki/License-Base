@@ -103,6 +103,8 @@ export type ProgressSnapshot = {
 
 export type ReviewItem = {
   id: string;
+  sourceType: 'review_item' | 'bookmark';
+  bookmarkId: string | null;
   reason: string | null;
   dueAt: string | null;
   question: {
@@ -283,6 +285,14 @@ export async function getMyProgress(userEmail: string): Promise<ProgressSnapshot
 
 export async function getMyReviewItems(userEmail: string): Promise<ReviewItem[]> {
   return readApi<ReviewItem[]>('/me/review-items', userEmail);
+}
+
+export async function archiveReviewItem(reviewItemId: string, userEmail: string): Promise<{ id: string; archived: boolean }> {
+  return writeApi<{ id: string; archived: boolean }>(`/me/review-items/${reviewItemId}/archive`, {}, userEmail);
+}
+
+export async function snoozeReviewItem(reviewItemId: string, days: number, userEmail: string): Promise<ReviewItem> {
+  return writeApi<ReviewItem>(`/me/review-items/${reviewItemId}/snooze`, { days }, userEmail);
 }
 
 export async function addBookmark(questionId: string, userEmail: string): Promise<BookmarkResult> {
