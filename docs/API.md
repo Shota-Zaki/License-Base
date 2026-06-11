@@ -7,6 +7,7 @@ GET /v1/health
 GET /v1/labs
 GET /v1/courses/:courseSlug
 GET /v1/questions/sample
+GET /v1/questions/:questionId
 ```
 
 ## Practice
@@ -52,21 +53,25 @@ POST   /v1/admin/import-jobs
 GET    /v1/admin/import-jobs
 ```
 
+## 現在のMVP実装状態
+
+DB接続済み:
+
+- `GET /v1/health`
+- `GET /v1/labs`
+- `GET /v1/courses/:courseSlug`
+- `GET /v1/questions/sample`
+- `GET /v1/questions/:questionId`
+- `GET /v1/practice-sets`
+- `GET /v1/practice-sets/:id`
+
+未実装:
+
+- 認証後の進捗保存
+- 見直し
+- 課金
+- 管理画面系
+
 ## レスポンス方針
 
 成功時は `data`、失敗時は `error` を返す。
-
-```json
-{
-  "data": {}
-}
-```
-
-```json
-{
-  "error": {
-    "code": "VALIDATION_ERROR",
-    "message": "入力内容を確認してください。"
-  }
-}
-```
