@@ -1,0 +1,161 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum QuestionStatus {
+  DRAFT
+  REVIEWING
+  PUBLISHED
+  ARCHIVED
+}
+
+enum AccessLevel {
+  FREE
+  BASIC
+  PRO
+  ADMIN
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Lab {
+  id             String          @id @default(cuid())
+  slug           String          @unique
+  nameEn         String
+  nameJa         String
+  description    String?
+  sortOrder      Int             @default(0)
+  isActive       Boolean         @default(true)
+  certifications Certification[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model Certification {
+  id          String     @id @default(cuid())
+  labId       String
+  slug        String     @unique
+  name        String
+  displayName String
+  description String?
+  lab         Lab        @relation(fields: [labId], references: [id], onDelete: Cascade)
+  courses     Course[]
+  questions   Question[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Course {
+  id              String        @id @default(cuid())
+  certificationId String
+  slug            String        @unique
+  title           String
+  description     String?
+  certification   Certification @relation(fields: [certificationId], references: [id], onDelete: Cascade)
+  units           Unit[]
+  practiceSets    PracticeSet[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model Unit {
+  id        String     @id @default(cuid())
+  courseId  String
+  slug      String     @unique
+  title     String
+  sortOrder Int        @default(0)
+  course    Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  questions Question[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Question {
+  id              String          @id @default(cuid())
+  certificationId String
+  unitId          String
+  status          QuestionStatus  @default(DRAFT)
+  title           String?
+  body            String
+  isFree          Boolean         @default(false)
+  certification   Certification   @relation(fields: [certificationId], references: [id], onDelete: Cascade)
+  unit            Unit            @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  choices         QuestionChoice[]
+  explanation     QuestionExplanation?
+  sources         QuestionSource[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model QuestionChoice {
+  id         String   @id @default(cuid())
+  questionId String
+  label      String
+  body       String
+  isCorrect  Boolean  @default(false)
+  sortOrder  Int      @default(0)
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+}
+
+model QuestionExplanation {
+  id         String   @id @default(cuid())
+  questionId String   @unique
+  bodyMd     String
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+}
+
+model QuestionSource {
+  id                 String   @id @default(cuid())
+  questionId          String
+  sourceType          String
+  sourceName          String?
+  sourceUrl           String?
+  verificationStatus  String   @default("unverified")
+  question            Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+}
+
+model PracticeSet {
+  id          String                @id @default(cuid())
+  courseId    String
+  slug        String                @unique
+  title       String
+  description String?
+  isFree      Boolean               @default(false)
+  isPublished Boolean               @default(false)
+  course      Course                @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  questions   PracticeSetQuestion[]
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+}
+
+model PracticeSetQuestion {
+  id            String      @id @default(cuid())
+  practiceSetId String
+  questionId    String
+  sortOrder     Int         @default(0)
+  practiceSet   PracticeSet @relation(fields: [practiceSetId], references: [id], onDelete: Cascade)
+  question      Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  @@unique([practiceSetId, questionId])
+}
+
+model Plan {
+  id              String      @id @default(cuid())
+  slug            String      @unique
+  name            String
+  accessLevel     AccessLevel
+  priceMonthlyJpy Int?
+  description     String?
+  isActive        Boolean     @default(true)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
