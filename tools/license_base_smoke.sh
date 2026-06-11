@@ -36,7 +36,7 @@ request 'FE sample practice set' GET "${API_BASE_URL}/practice-sets/fe-free-samp
 node --input-type=module - "${PRACTICE_SET_RESPONSE}" "${GRADE_REQUEST}" <<'NODE'
 import { readFileSync, writeFileSync } from 'node:fs';
 
-const [, , , inputPath, outputPath] = process.argv;
+const [, , inputPath, outputPath] = process.argv;
 const payload = JSON.parse(readFileSync(inputPath, 'utf8'));
 const questions = payload?.data?.questions ?? [];
 const answers = questions
