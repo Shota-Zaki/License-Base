@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 env:
   PNPM_VERSION: "10.0.0"
@@ -21,6 +21,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.head_ref || github.ref_name }}
           show-progress: false
 
       - name: Setup Node
@@ -42,6 +43,19 @@ jobs:
           name: generated-pnpm-lockfile
           path: pnpm-lock.yaml
           if-no-files-found: error
+
+      - name: Commit generated pnpm lockfile
+        if: github.event_name == 'pull_request'
+        run: |
+          if [ -z "$(git status --porcelain -- pnpm-lock.yaml)" ]; then
+            echo "pnpm-lock.yaml is already up to date."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pnpm-lock.yaml
+          git commit -m "chore: add pnpm lockfile"
+          git push
 
       - name: Generate Prisma client
         run: pnpm db:generate
@@ -102,6 +116,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.head_ref || github.ref_name }}
           show-progress: false
 
       - name: Setup Node
