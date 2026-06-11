@@ -11,7 +11,6 @@ export class QuestionsController {
       include: {
         unit: true,
         choices: { orderBy: { sortOrder: 'asc' } },
-        explanation: true,
         sources: true
       }
     });
@@ -31,7 +30,6 @@ export class QuestionsController {
         accessLevel: question.accessLevel,
         unit: { id: question.unit.id, slug: question.unit.slug, title: question.unit.title },
         choices: question.choices.map((choice) => ({ id: choice.id, label: choice.label, body: choice.body })),
-        explanation: question.explanation ? { bodyMd: question.explanation.bodyMd } : null,
         sources: question.sources.map((source) => ({
           sourceType: source.sourceType,
           sourceName: source.sourceName,
@@ -50,7 +48,6 @@ export class QuestionsController {
       include: {
         unit: true,
         choices: { orderBy: { sortOrder: 'asc' } },
-        explanation: true,
         sources: true
       }
     });
@@ -69,8 +66,7 @@ export class QuestionsController {
         isFree: question.isFree,
         accessLevel: question.accessLevel,
         unit: { id: question.unit.id, slug: question.unit.slug, title: question.unit.title },
-        choices: question.choices.map((choice) => ({ id: choice.id, label: choice.label, body: choice.body, isCorrect: choice.isCorrect })),
-        explanation: question.explanation ? { bodyMd: question.explanation.bodyMd } : null,
+        choices: question.choices.map((choice) => ({ id: choice.id, label: choice.label, body: choice.body })),
         sources: question.sources.map((source) => ({
           sourceType: source.sourceType,
           sourceName: source.sourceName,
