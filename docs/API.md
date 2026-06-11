@@ -66,18 +66,44 @@ DB接続済み:
 - `GET /v1/practice-sets`
 - `GET /v1/practice-sets/:id`
 - `POST /v1/practice-sets/:id/grade`
+- `POST /v1/attempts`
+- `POST /v1/attempts/:attemptId/answers`
+- `POST /v1/attempts/:attemptId/submit`
+- `GET /v1/attempts/:attemptId/result`
+- `GET /v1/me/progress`
+- `GET /v1/me/review-items`
+- `POST /v1/me/bookmarks`
+- `DELETE /v1/me/bookmarks/:bookmarkId`
+- `GET /v1/me/entitlements`
+- `GET /v1/plans`
+
+## 認証前提
+
+MVP段階では本番認証プロバイダ未確定のため、ログイン必須APIは暫定的に `x-user-email` ヘッダーでユーザーを識別する。
+
+対象:
+
+- `POST /v1/attempts`
+- `POST /v1/attempts/:attemptId/answers`
+- `POST /v1/attempts/:attemptId/submit`
+- `GET /v1/attempts/:attemptId/result`
+- `GET /v1/me/progress`
+- `GET /v1/me/review-items`
+- `POST /v1/me/bookmarks`
+- `DELETE /v1/me/bookmarks/:bookmarkId`
+- `GET /v1/me/entitlements`
 
 ## 正答公開方針
 
 - `GET /v1/questions/:id` と `GET /v1/practice-sets/:id` は回答前表示用なので、選択肢の `isCorrect` と解説本文を返さない。
 - `POST /v1/practice-sets/:id/grade` は提出後表示用として、採点結果、正答、解説を返す。
-- ログイン後の進捗保存は今後 `attempts` 系APIへ接続する。
+- `GET /v1/attempts/:attemptId/result` は提出前には正答・解説を返さず、提出後のみ正答・解説を返す。
+- `POST /v1/attempts/:attemptId/submit` は提出後表示用として、採点結果、正答、解説を返し、不正解問題を復習対象へ追加する。
 
 未実装:
 
-- 認証後の進捗保存
-- 見直し
-- 課金
+- 本番認証
+- 決済checkout / webhook
 - 管理画面系
 
 ## レスポンス方針
