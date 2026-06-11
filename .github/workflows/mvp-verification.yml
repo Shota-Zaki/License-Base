@@ -36,6 +36,13 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
+      - name: Upload generated pnpm lockfile
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-pnpm-lockfile
+          path: pnpm-lock.yaml
+          if-no-files-found: error
+
       - name: Generate Prisma client
         run: pnpm db:generate
 
