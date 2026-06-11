@@ -7,14 +7,40 @@
     "body": "大規模言語モデルを用いた自然言語処理において，事前学習済みのモデルに対して行う，ファインチューニングに関する記述として，最も適切なものはどれか。",
     "difficulty": 2,
     "choices": [
-      { "label": "ア", "body": "強化学習を行い，最適な結果が得られるようにする。", "isCorrect": false },
-      { "label": "イ", "body": "事前学習と同じデータを繰り返し用いて学習を行い，モデルの精度を高めるようにする。", "isCorrect": false },
-      { "label": "ウ", "body": "大量のテキストデータを用いて学習を行い，モデルの精度を高めるようにする。", "isCorrect": false },
-      { "label": "エ", "body": "特定のデータを用いて追加で学習を行い，目的とするタスクに適用できるようにする。", "isCorrect": true }
+      {
+        "label": "ア",
+        "body": "強化学習を行い，最適な結果が得られるようにする。",
+        "isCorrect": false
+      },
+      {
+        "label": "イ",
+        "body": "事前学習と同じデータを繰り返し用いて学習を行い，モデルの精度を高めるようにする。",
+        "isCorrect": false
+      },
+      {
+        "label": "ウ",
+        "body": "大量のテキストデータを用いて学習を行い，モデルの精度を高めるようにする。",
+        "isCorrect": false
+      },
+      {
+        "label": "エ",
+        "body": "特定のデータを用いて追加で学習を行い，目的とするタスクに適用できるようにする。",
+        "isCorrect": true
+      }
     ],
     "explanation": "ファインチューニングは，広いデータで事前学習したモデルを出発点にし，特定の業務・分類・応答形式などに合うデータで追加学習させる調整である。最初から大量テキストで汎用モデルを作る処理ではなく，既存モデルを目的タスクへ適用しやすくする段階を問う設問である。",
-    "source": { "sourceType": "IPA_OFFICIAL", "sourceName": "出典：令和7年度 基本情報技術者試験 公開問題", "sourceUrl": "https://www.ipa.go.jp/shiken/mondai-kaiotu/sg_fe/koukai/2025r07.html", "licenseNote": "IPA公開問題を出典明記の上で収録。解説は本サイトで新規作成。", "verificationStatus": "official_checked" },
-    "runtime": { "importGate": "READY_OFFICIAL", "sourceBucket": "fe_official_ready", "visualPolicy": "ALLOW_VISUAL_HTML" }
+    "source": {
+      "sourceType": "IPA_OFFICIAL",
+      "sourceName": "出典：令和7年度 基本情報技術者試験 公開問題",
+      "sourceUrl": "https://www.ipa.go.jp/shiken/mondai-kaiotu/sg_fe/koukai/2025r07.html",
+      "licenseNote": "IPA公開問題を出典明記の上で収録。解説は本サイトで新規作成。",
+      "verificationStatus": "official_checked"
+    },
+    "runtime": {
+      "importGate": "READY_OFFICIAL",
+      "sourceBucket": "fe_official_ready",
+      "visualPolicy": "ALLOW_VISUAL_HTML"
+    }
   },
   {
     "slug": "fe-ipa-2025r07-a-002",
@@ -24,64 +50,168 @@
     "body": "浮動小数点形式で表現された数値の演算結果における丸め誤差の説明はどれか。",
     "difficulty": 2,
     "choices": [
-      { "label": "ア", "body": "演算結果がコンピュータの扱える最大値を超えることによって生じる誤差である。", "isCorrect": false },
-      { "label": "イ", "body": "数表現のけた数に限度があるので，最下位けたより小さい部分について四捨五入や切上げ，切捨てを行うことによって生じる誤差である。", "isCorrect": true },
-      { "label": "ウ", "body": "乗除算において，指数部が小さい方の数値の仮数部の下位部分が失われることによって生じる誤差である。", "isCorrect": false },
-      { "label": "エ", "body": "絶対値がほぼ等しい数値の加減算において，上位の有効数字が失われることによって生じる誤差である。", "isCorrect": false }
+      {
+        "label": "ア",
+        "body": "演算結果がコンピュータの扱える最大値を超えることによって生じる誤差である。",
+        "isCorrect": false
+      },
+      {
+        "label": "イ",
+        "body": "数表現のけた数に限度があるので，最下位けたより小さい部分について四捨五入や切上げ，切捨てを行うことによって生じる誤差である。",
+        "isCorrect": true
+      },
+      {
+        "label": "ウ",
+        "body": "乗除算において，指数部が小さい方の数値の仮数部の下位部分が失われることによって生じる誤差である。",
+        "isCorrect": false
+      },
+      {
+        "label": "エ",
+        "body": "絶対値がほぼ等しい数値の加減算において，上位の有効数字が失われることによって生じる誤差である。",
+        "isCorrect": false
+      }
     ],
     "explanation": "丸め誤差は，浮動小数点形式で保持できる有効桁数に限りがあるため，演算結果の下位部分を切捨て・切上げ・四捨五入などで丸めることで生じる誤差である。最大値超過によるあふれ，桁落ち，情報落ちとは発生原因が異なる。",
-    "source": { "sourceType": "IPA_OFFICIAL", "sourceName": "出典：令和7年度 基本情報技術者試験 公開問題", "sourceUrl": "https://www.ipa.go.jp/shiken/mondai-kaiotu/sg_fe/koukai/2025r07.html", "licenseNote": "IPA公開問題を出典明記の上で収録。解説は本サイトで新規作成。", "verificationStatus": "official_checked" },
-    "runtime": { "importGate": "READY_OFFICIAL", "sourceBucket": "fe_official_ready", "visualPolicy": "ALLOW_VISUAL_HTML" }
+    "source": {
+      "sourceType": "IPA_OFFICIAL",
+      "sourceName": "出典：令和7年度 基本情報技術者試験 公開問題",
+      "sourceUrl": "https://www.ipa.go.jp/shiken/mondai-kaiotu/sg_fe/koukai/2025r07.html",
+      "licenseNote": "IPA公開問題を出典明記の上で収録。解説は本サイトで新規作成。",
+      "verificationStatus": "official_checked"
+    },
+    "runtime": {
+      "importGate": "READY_OFFICIAL",
+      "sourceBucket": "fe_official_ready",
+      "visualPolicy": "ALLOW_VISUAL_HTML"
+    }
   },
   {
     "slug": "fe-ipa-2025r07-a-003",
     "unitSlug": "fe-public-2025r07-subject-a",
     "unitTitle": "令和7年度公開問題 科目A",
     "title": "令和7年度 基本情報技術者試験 公開問題",
-    "body": "AIにおけるディープラーニングの特徴として，最も適切なものはどれか。",
+    "body": "図の木構造は2分探索木である。a～gの値の大小関係として，適切なものはどれか。ここで，a～gの値は重複しないものとする。",
     "difficulty": 2,
     "choices": [
-      { "label": "ア", "body": "大量のデータを用いて，多層のニューラルネットワークに特徴を学習させる。", "isCorrect": true },
-      { "label": "イ", "body": "あらかじめ人が作成した決定表だけを用いて，すべての判断を行う。", "isCorrect": false },
-      { "label": "ウ", "body": "データを使わずに，乱数だけで正しい分類規則を作る。", "isCorrect": false },
-      { "label": "エ", "body": "プログラムの構文エラーを検出するためだけに使う。", "isCorrect": false }
+      {
+        "label": "ア",
+        "body": "a ＜ b ＜ d ＜ e ＜ c ＜ f ＜ g",
+        "isCorrect": false
+      },
+      {
+        "label": "イ",
+        "body": "d ＜ b ＜ e ＜ a ＜ f ＜ c ＜ g",
+        "isCorrect": true
+      },
+      {
+        "label": "ウ",
+        "body": "d ＜ e ＜ f ＜ g ＜ b ＜ c ＜ a",
+        "isCorrect": false
+      },
+      {
+        "label": "エ",
+        "body": "g ＜ f ＜ c ＜ e ＜ d ＜ b ＜ a",
+        "isCorrect": false
+      }
     ],
-    "explanation": "ディープラーニングは，多層のニューラルネットワークを用いて，入力データから特徴量や判断規則を段階的に学習する手法である。人がすべての規則を明示的に作る方法とは異なる。",
-    "source": { "sourceType": "IPA_OFFICIAL", "sourceName": "出典：令和7年度 基本情報技術者試験 公開問題", "sourceUrl": "https://www.ipa.go.jp/shiken/mondai-kaiotu/sg_fe/koukai/2025r07.html", "licenseNote": "IPA公開問題を出典明記の上で収録。解説は本サイトで新規作成。", "verificationStatus": "official_checked" },
-    "runtime": { "importGate": "READY_OFFICIAL", "sourceBucket": "fe_official_ready", "visualPolicy": "ALLOW_VISUAL_HTML" }
+    "explanation": "2分探索木では，各節点について左部分木の値は節点より小さく，右部分木の値は節点より大きい。したがって木を中順走査，すなわち左部分木，節点，右部分木の順にたどると昇順に並ぶ。設問の図をこの順序で読むと，d，b，e，a，f，c，g の大小関係になる。",
+    "source": {
+      "sourceType": "IPA_OFFICIAL",
+      "sourceName": "出典：令和7年度 基本情報技術者試験 公開問題",
+      "sourceUrl": "https://www.ipa.go.jp/shiken/mondai-kaiotu/sg_fe/koukai/2025r07.html",
+      "licenseNote": "IPA公開問題を出典明記の上で収録。解説は本サイトで新規作成。",
+      "verificationStatus": "official_checked"
+    },
+    "runtime": {
+      "importGate": "READY_OFFICIAL",
+      "sourceBucket": "fe_official_ready",
+      "visualPolicy": "ALLOW_VISUAL_HTML"
+    }
   },
   {
     "slug": "fe-ipa-2025r07-a-004",
     "unitSlug": "fe-public-2025r07-subject-a",
     "unitTitle": "令和7年度公開問題 科目A",
     "title": "令和7年度 基本情報技術者試験 公開問題",
-    "body": "情報セキュリティにおける多要素認証の説明として，最も適切なものはどれか。",
+    "body": "MTBFは4,000時間，MTTRは1,000時間の装置がある。今後の6年間は，予防保守によってMTBFを前年に比べて毎年100時間ずつ改善し，遠隔保守によってMTTRを前年に比べて毎年100時間ずつ改善していく計画である。6年経過後の稼働率は幾らか。",
     "difficulty": 2,
     "choices": [
-      { "label": "ア", "body": "同じパスワードを複数回入力させる方式である。", "isCorrect": false },
-      { "label": "イ", "body": "知識，所有，生体など異なる種類の要素を組み合わせて本人確認を行う方式である。", "isCorrect": true },
-      { "label": "ウ", "body": "利用者IDを暗号化して保存しない方式である。", "isCorrect": false },
-      { "label": "エ", "body": "一度認証した後は全ての確認を省略する方式である。", "isCorrect": false }
+      {
+        "label": "ア",
+        "body": "0.88",
+        "isCorrect": false
+      },
+      {
+        "label": "イ",
+        "body": "0.90",
+        "isCorrect": false
+      },
+      {
+        "label": "ウ",
+        "body": "0.92",
+        "isCorrect": true
+      },
+      {
+        "label": "エ",
+        "body": "0.94",
+        "isCorrect": false
+      }
     ],
-    "explanation": "多要素認証は，パスワードのような知識情報，スマートフォンやトークンのような所持情報，指紋などの生体情報といった異なる要素を組み合わせることで，認証強度を高める考え方である。",
-    "source": { "sourceType": "IPA_OFFICIAL", "sourceName": "出典：令和7年度 基本情報技術者試験 公開問題", "sourceUrl": "https://www.ipa.go.jp/shiken/mondai-kaiotu/sg_fe/koukai/2025r07.html", "licenseNote": "IPA公開問題を出典明記の上で収録。解説は本サイトで新規作成。", "verificationStatus": "official_checked" },
-    "runtime": { "importGate": "READY_OFFICIAL", "sourceBucket": "fe_official_ready", "visualPolicy": "ALLOW_VISUAL_HTML" }
+    "explanation": "稼働率は MTBF ÷ (MTBF + MTTR) で求める。6年間でMTBFは毎年100時間ずつ増えるので4,600時間，MTTRは毎年100時間ずつ短くなるので400時間になる。したがって 4,600 ÷ (4,600 + 400) = 4,600 ÷ 5,000 = 0.92 である。",
+    "source": {
+      "sourceType": "IPA_OFFICIAL",
+      "sourceName": "出典：令和7年度 基本情報技術者試験 公開問題",
+      "sourceUrl": "https://www.ipa.go.jp/shiken/mondai-kaiotu/sg_fe/koukai/2025r07.html",
+      "licenseNote": "IPA公開問題を出典明記の上で収録。解説は本サイトで新規作成。",
+      "verificationStatus": "official_checked"
+    },
+    "runtime": {
+      "importGate": "READY_OFFICIAL",
+      "sourceBucket": "fe_official_ready",
+      "visualPolicy": "ALLOW_VISUAL_HTML"
+    }
   },
   {
     "slug": "fe-ipa-2025r07-a-005",
     "unitSlug": "fe-public-2025r07-subject-a",
     "unitTitle": "令和7年度公開問題 科目A",
     "title": "令和7年度 基本情報技術者試験 公開問題",
-    "body": "データベースの正規化を行う主な目的として，最も適切なものはどれか。",
+    "body": "あるコンピュータ上で，異なる命令形式をもつコンピュータで実行できる目的プログラムを生成するためのソフトウェアはどれか。",
     "difficulty": 2,
     "choices": [
-      { "label": "ア", "body": "データの重複や更新時の不整合を減らす。", "isCorrect": true },
-      { "label": "イ", "body": "すべての表を一つの表にまとめる。", "isCorrect": false },
-      { "label": "ウ", "body": "データベース管理システムを使わずに保存する。", "isCorrect": false },
-      { "label": "エ", "body": "主キーをすべて削除する。", "isCorrect": false }
+      {
+        "label": "ア",
+        "body": "エミュレータ",
+        "isCorrect": false
+      },
+      {
+        "label": "イ",
+        "body": "クロスコンパイラ",
+        "isCorrect": true
+      },
+      {
+        "label": "ウ",
+        "body": "最適化コンパイラ",
+        "isCorrect": false
+      },
+      {
+        "label": "エ",
+        "body": "プログラムジェネレータ",
+        "isCorrect": false
+      }
     ],
-    "explanation": "正規化は，データを適切な表に分割し，重複や更新時の不整合を減らすための設計手法である。すべてを一つの表にまとめることや，キーを削除することが目的ではない。",
-    "source": { "sourceType": "IPA_OFFICIAL", "sourceName": "出典：令和7年度 基本情報技術者試験 公開問題", "sourceUrl": "https://www.ipa.go.jp/shiken/mondai-kaiotu/sg_fe/koukai/2025r07.html", "licenseNote": "IPA公開問題を出典明記の上で収録。解説は本サイトで新規作成。", "verificationStatus": "official_checked" },
-    "runtime": { "importGate": "READY_OFFICIAL", "sourceBucket": "fe_official_ready", "visualPolicy": "ALLOW_VISUAL_HTML" }
+    "explanation": "クロスコンパイラは，実行しているコンピュータとは異なる命令形式や環境で動作する目的プログラムを生成するコンパイラである。エミュレータは別環境の動作を模擬するソフトウェアであり，目的プログラムを生成するものではない。",
+    "source": {
+      "sourceType": "IPA_OFFICIAL",
+      "sourceName": "出典：令和7年度 基本情報技術者試験 公開問題",
+      "sourceUrl": "https://www.ipa.go.jp/shiken/mondai-kaiotu/sg_fe/koukai/2025r07.html",
+      "licenseNote": "IPA公開問題を出典明記の上で収録。解説は本サイトで新規作成。",
+      "verificationStatus": "official_checked"
+    },
+    "runtime": {
+      "importGate": "READY_OFFICIAL",
+      "sourceBucket": "fe_official_ready",
+      "visualPolicy": "ALLOW_VISUAL_HTML"
+    }
   }
 ]
