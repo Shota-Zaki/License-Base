@@ -49,36 +49,42 @@ async function main() {
     }
   });
 
-  const question = await prisma.question.create({
-    data: {
-      certificationId: certification.id,
-      unitId: unit.id,
-      status: 'PUBLISHED',
-      title: 'サンプル問題: 2進数',
-      body: '10進数の13を2進数で表したものとして、適切なものはどれか。',
-      isFree: true,
-      choices: {
-        create: [
-          { label: 'ア', body: '1011', isCorrect: false, sortOrder: 1 },
-          { label: 'イ', body: '1101', isCorrect: true, sortOrder: 2 },
-          { label: 'ウ', body: '1110', isCorrect: false, sortOrder: 3 },
-          { label: 'エ', body: '1001', isCorrect: false, sortOrder: 4 }
-        ]
-      },
-      explanation: {
-        create: {
-          bodyMd: '13は8 + 4 + 1なので、2進数では1101です。'
-        }
-      },
-      sources: {
-        create: {
-          sourceType: 'original',
-          sourceName: 'initial-seed',
-          verificationStatus: 'original'
+  let question = await prisma.question.findFirst({
+    where: { title: 'サンプル問題: 2進数' }
+  });
+
+  if (!question) {
+    question = await prisma.question.create({
+      data: {
+        certificationId: certification.id,
+        unitId: unit.id,
+        status: 'PUBLISHED',
+        title: 'サンプル問題: 2進数',
+        body: '10進数の13を2進数で表したものとして、適切なものはどれか。',
+        isFree: true,
+        choices: {
+          create: [
+            { label: 'ア', body: '1011', isCorrect: false, sortOrder: 1 },
+            { label: 'イ', body: '1101', isCorrect: true, sortOrder: 2 },
+            { label: 'ウ', body: '1110', isCorrect: false, sortOrder: 3 },
+            { label: 'エ', body: '1001', isCorrect: false, sortOrder: 4 }
+          ]
+        },
+        explanation: {
+          create: {
+            bodyMd: '13は8 + 4 + 1なので、2進数では1101です。'
+          }
+        },
+        sources: {
+          create: {
+            sourceType: 'original',
+            sourceName: 'initial-seed',
+            verificationStatus: 'original'
+          }
         }
       }
-    }
-  });
+    });
+  }
 
   await prisma.practiceSet.upsert({
     where: { slug: 'fe-free-sample-set' },
