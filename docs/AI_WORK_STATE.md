@@ -2,7 +2,7 @@
 
 ## 現在状態
 
-License Base / Engineer-License-Lab / FE Practice Lab のWeb MVPを継続中。`feat/mvp-foundation-v2` / PR #1 を起点に、PR mergeable状態を再確認し、添付EEL runtime import bundle由来のMVP seed候補を図表なしでも表示できる公式確認済み5問へ差し替えた。
+License Base / Engineer-License-Lab / FE Practice Lab のWeb MVPを継続中。`feat/mvp-foundation-v2` / PR #1 を起点に、PR mergeable状態を再確認し、実行検証を再試行した。実行環境制約は継続しているため、未実行チェックは成功扱いせず、静的に潰せる本番前リスクとして正答公開仕様を回答前/提出後へ分離した。
 
 ## 確定方針
 
@@ -20,13 +20,21 @@ License Base / Engineer-License-Lab / FE Practice Lab のWeb MVPを継続中。`
 
 - `CHATGPT_READ_FIRST.md` と `docs/AI_WORK_STATE.md` を確認
 - PR #1 の `mergeable: true` を確認
-- `packages/db/prisma/seed-data/fe-mvp-questions.json` を図表なしでも表示できる公式確認済み5問へ差し替え
-- ローカル実行環境を再確認
+- 実行環境を再確認し、`github.com` / `registry.npmjs.org` のDNS不可、pnpm未導入、Docker未導入を再確認
+- `GET /v1/questions/:id` から `isCorrect` と解説を除外
+- `GET /v1/practice-sets/:id` から `isCorrect` と解説を除外
+- `POST /v1/practice-sets/:id/grade` を追加し、提出後に採点結果・正答・解説を返す構造へ分離
+- Web演習画面を回答前表示に合わせ、正答・解説の即時表示を停止
+- `docs/API.md` に正答公開方針を追記
 - `docs/AI_WORK_STATE.md` を更新
 
 ## 変更ファイル
 
-- `packages/db/prisma/seed-data/fe-mvp-questions.json`
+- `apps/api/src/modules/practice-sets/practice-sets.controller.ts`
+- `apps/api/src/modules/questions/questions.controller.ts`
+- `apps/web/lib/api.ts`
+- `apps/web/app/engineer-license-lab/fe/practice/[practiceSetId]/page.tsx`
+- `docs/API.md`
 - `docs/AI_WORK_STATE.md`
 
 ## 未完了
@@ -42,6 +50,7 @@ License Base / Engineer-License-Lab / FE Practice Lab のWeb MVPを継続中。`
 - 実HTTP smoke
 - ブラウザ確認
 - スマホ幅確認
+- 回答選択UIと `POST /v1/practice-sets/:id/grade` の画面接続
 - 認証プロバイダ確定
 - 決済プロバイダ詳細設定
 - 既存問題データの全件投入形式確認
@@ -62,7 +71,6 @@ License Base / Engineer-License-Lab / FE Practice Lab のWeb MVPを継続中。`
 - 認証プロバイダの最終選定
 - 決済プロバイダの本番設定
 - `.env.example` ではなく `env.example` として追加済み
-- 問題詳細・演習詳細で正答情報を返しているため、提出前非公開仕様への分離が必要
 - FEテキスト限定1032問はvisualHtml非表示ルート実装後に投入
 - FE正答なし286問は出題不可
 - FE AI生成200問は公式問題と分離しレビュー待ち
@@ -92,19 +100,19 @@ License Base / Engineer-License-Lab / FE Practice Lab のWeb MVPを継続中。`
 5. seed-data読込とPrisma schema/API型の不整合を修正する
 6. APIを起動し、主要エンドポイントを実HTTP確認する
 7. Webを起動し、PC幅・スマホ幅で確認する
-8. 正答公開仕様を提出後表示へ分離する
+8. 回答選択UIを `POST /v1/practice-sets/:id/grade` へ接続する
 9. FEテキスト限定問題のvisualHtml非表示取込ルートを設計する
 
 ## 推定完成度
 
-- 企画・要件: 47%
-- アーキテクチャ: 42%
+- 企画・要件: 48%
+- アーキテクチャ: 43%
 - DB設計: 42%
 - UI方針: 35%
-- 実装: 28%
+- 実装: 31%
 - 検証: 0%
-- 引継ぎ整備: 86%
+- 引継ぎ整備: 87%
 
 ## 次回用短縮プロンプト
 
-Shota-Zaki/License-Base リポジトリの `CHATGPT_READ_FIRST.md` と `docs/AI_WORK_STATE.md` を最初に確認してください。`feat/mvp-foundation-v2` / PR #1 を起点に、License Base / Engineer-License-Lab / FE Practice Lab のWeb MVPを進めてください。前回、PR #1 の `mergeable: true` を確認し、`packages/db/prisma/seed-data/fe-mvp-questions.json` を図表なしでも表示できる公式確認済み5問へ差し替え済みです。ただし、この実行環境では `github.com` / `registry.npmjs.org` の名前解決に失敗し、pnpm未導入・Docker未導入のため、pnpm install、lockfile生成、DB起動、Prisma generate / migrate / seed、API/Web起動、実HTTP smoke、PC幅・スマホ幅確認は未実行です。ネットワークとDockerが使える環境で実行検証を優先してください。未実行チェックは成功扱いせず、最後に差分ログ、保留、進捗サマリー、残作業一覧、推定完成度、次回用短縮プロンプトを出してください。
+Shota-Zaki/License-Base リポジトリの `CHATGPT_READ_FIRST.md` と `docs/AI_WORK_STATE.md` を最初に確認してください。`feat/mvp-foundation-v2` / PR #1 を起点に、License Base / Engineer-License-Lab / FE Practice Lab のWeb MVPを進めてください。前回、PR #1 の `mergeable: true` を確認し、回答前APIから正答・解説を外し、`POST /v1/practice-sets/:id/grade` で提出後に採点結果・正答・解説を返す形へ分離済みです。ただし、この実行環境では `github.com` / `registry.npmjs.org` の名前解決に失敗し、pnpm未導入・Docker未導入のため、pnpm install、lockfile生成、DB起動、Prisma generate / migrate / seed、API/Web起動、実HTTP smoke、PC幅・スマホ幅確認は未実行です。ネットワークとDockerが使える環境で実行検証を優先し、続けて回答選択UIをgrade APIへ接続してください。未実行チェックは成功扱いせず、最後に差分ログ、保留、進捗サマリー、残作業一覧、推定完成度、次回用短縮プロンプトを出してください。
