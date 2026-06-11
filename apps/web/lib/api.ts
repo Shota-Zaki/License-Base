@@ -57,6 +57,21 @@ export type PracticeSetDetail = {
   questions: PracticeQuestion[];
 };
 
+export type GradePracticeSetResult = {
+  practiceSetId: string;
+  totalCount: number;
+  correctCount: number;
+  scorePercent: number;
+  results: Array<{
+    questionId: string;
+    slug: string;
+    submittedChoiceId: string | null;
+    isCorrect: boolean;
+    correctChoice: { id: string; label: string; body: string } | null;
+    explanation: { bodyMd: string } | null;
+  }>;
+};
+
 export const fallbackCourse: CourseDetail = {
   id: 'fallback-fe-practice-lab',
   slug: 'fe-practice-lab',
@@ -112,6 +127,17 @@ async function readApi<T>(path: string): Promise<T> {
   return payload.data;
 }
 
+async function writeApi<T>(path: string, body: unknown): Promise<T> {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!response.ok) throw new Error(`API request failed: ${response.status}`);
+  const payload = (await response.json()) as ApiEnvelope<T>;
+  return payload.data;
+}
+
 export async function getCourseDetail(courseSlug: string): Promise<CourseDetail> {
   try {
     return await readApi<CourseDetail>(`/courses/${courseSlug}`);
@@ -126,4 +152,8 @@ export async function getPracticeSetDetail(practiceSetId: string): Promise<Pract
   } catch {
     return fallbackPracticeSet;
   }
+}
+
+export async function gradePracticeSet(practiceSetId: string, answers: Array<{ questionId: string; choiceId: string }>): Promise<GradePracticeSetResult> {
+  return writeApi<GradePracticeSetResult>(`/practice-sets/${practiceSetId}/grade`, { answers });
 }
