@@ -2,7 +2,7 @@
 
 ## 現在状態
 
-License Base / Engineer-License-Lab / FE Practice Lab のWeb MVPを継続中。`feat/mvp-foundation-v2` / PR #1 を起点に、GitHub Actions `MVP verification` の失敗箇所を段階的に切り分け、Actions上では `pnpm-lock.yaml` 追加後の frozen lockfile 検証まで成功する状態に到達済み。今回、認証後の進捗保存・見直し・課金権限確認のMVP API土台を追加し、Actions run #27 で install / typecheck / build / PostgreSQL service / Prisma migrate / seed / API-Web起動 / HTTP smoke まで成功した。この実行環境では外部DNS、pnpm、Dockerの制約が継続しているため、ローカル実行検証は未実行のまま成功扱いしない。
+License Base / Engineer-License-Lab / FE Practice Lab のWeb MVPを継続中。`feat/mvp-foundation-v2` / PR #1 を起点に、GitHub Actions `MVP verification` の失敗箇所を段階的に切り分け、Actions上では `pnpm-lock.yaml` 追加後の frozen lockfile 検証まで成功する状態に到達済み。今回、認証後の進捗保存・見直し・課金権限確認のMVP API土台を追加し、Actions run #28 で install / typecheck / build / PostgreSQL service / Prisma migrate / seed / API-Web起動 / HTTP smoke まで成功した。この実行環境では外部DNS、pnpm、Dockerの制約が継続しているため、ローカル実行検証は未実行のまま成功扱いしない。
 
 ## 確定方針
 
@@ -54,7 +54,7 @@ License Base / Engineer-License-Lab / FE Practice Lab のWeb MVPを継続中。`
   - progress取得
   - review-items取得
 - `docs/API.md` を現行MVP API実装状態に更新
-- GitHub Actions `MVP verification` run #27 を確認
+- GitHub Actions `MVP verification` run #28 を確認
   - completed / success
   - static-check: install / Prisma generate / typecheck / build success
   - integration: PostgreSQL service / install / Prisma generate / migrate / seed / API-Web起動 / API-Web待機 / HTTP smoke success
@@ -93,9 +93,9 @@ License Base / Engineer-License-Lab / FE Practice Lab のWeb MVPを継続中。`
 
 ## 保留
 
-- Actionsでは `MVP verification` run #27 が frozen lockfile状態で成功したが、ローカル検証は未実行
+- Actionsでは `MVP verification` run #28 が frozen lockfile状態で成功したが、ローカル検証は未実行
 - `pnpm-lock.yaml` はActions生成物をPR branchへ反映済みだが、ローカルでの `pnpm install --frozen-lockfile` は未実行
-- workflow内の `pnpm db:migrate` はActions run #27で成功したが、正式なmigrationファイル運用は別途確認する
+- workflow内の `pnpm db:migrate` はActions run #28で成功したが、正式なmigrationファイル運用は別途確認する
 - ログイン必須APIは暫定的に `x-user-email` ヘッダーでユーザー識別している。本番認証確定後に差し替える
 - `ProgressSnapshot` はMVP用の単元別最新提出サマリーとして更新している。累積集計・日次集計・弱点分析は未設計
 - UIの最終ビジュアル詳細
@@ -115,17 +115,17 @@ License Base / Engineer-License-Lab / FE Practice Lab のWeb MVPを継続中。`
 
 ## 未実行チェック
 
-- pnpm install: ローカル未実行 / Actions run #27で `--frozen-lockfile` 成功
-- DB起動: ローカル未実行 / Actions PostgreSQL serviceはrun #27成功
-- Prisma generate: ローカル未実行 / Actions run #27成功
-- Prisma migrate: ローカル未実行 / Actions run #27成功
-- seed実行: ローカル未実行 / Actions run #27成功
-- API起動: ローカル未実行 / Actions run #27成功
-- Web起動: ローカル未実行 / Actions run #27成功
-- 実HTTP smoke: ローカル未実行 / Actions run #27成功
+- pnpm install: ローカル未実行 / Actions run #28で `--frozen-lockfile` 成功
+- DB起動: ローカル未実行 / Actions PostgreSQL serviceはrun #28成功
+- Prisma generate: ローカル未実行 / Actions run #28成功
+- Prisma migrate: ローカル未実行 / Actions run #28成功
+- seed実行: ローカル未実行 / Actions run #28成功
+- API起動: ローカル未実行 / Actions run #28成功
+- Web起動: ローカル未実行 / Actions run #28成功
+- 実HTTP smoke: ローカル未実行 / Actions run #28成功
 - ブラウザ確認: 未実行
 - スマホ幅確認: 未実行
-- GitHub Actions workflow: run #27 completed / success
+- GitHub Actions workflow: run #28 completed / success
 
 ## 次回作業
 
@@ -154,4 +154,4 @@ License Base / Engineer-License-Lab / FE Practice Lab のWeb MVPを継続中。`
 
 ## 次回用短縮プロンプト
 
-Shota-Zaki/License-Base リポジトリの `CHATGPT_READ_FIRST.md` と `docs/AI_WORK_STATE.md` を最初に確認してください。`feat/mvp-foundation-v2` / PR #1 を起点に、License Base / Engineer-License-Lab / FE Practice Lab のWeb MVPを進めてください。前回、認証後の進捗保存・見直し・課金権限確認のMVP API土台を追加しました。MVP段階ではログイン必須APIを暫定的に `x-user-email` ヘッダーで識別します。追加済みAPIは `POST /v1/attempts`、`POST /v1/attempts/:attemptId/answers`、`POST /v1/attempts/:attemptId/submit`、`GET /v1/attempts/:attemptId/result`、`GET /v1/me/progress`、`GET /v1/me/review-items`、`POST /v1/me/bookmarks`、`DELETE /v1/me/bookmarks/:bookmarkId`、`GET /v1/plans`、`GET /v1/me/entitlements` です。`tools/license_base_smoke.sh` もこれらを含む形へ拡張済みです。GitHub Actions `MVP verification` run #27 は completed / success で、frozen lockfile状態の install、static-check、build、PostgreSQL service、Prisma migrate、seed、API/Web起動、API/Web待機、拡張HTTP smoke まで成功済みです。ただし、この実行環境では外部DNS不可、pnpm未導入、Docker未導入のため、ローカルの pnpm install、DB起動、Prisma generate / migrate / seed、API/Web起動、実HTTP smoke、PC幅・スマホ幅確認は未実行です。未実行チェックは成功扱いせず、次はネットワーク利用可能なローカル環境で `pnpm install --frozen-lockfile` とローカル実行検証を進め、続いて進捗保存API・見直しAPI・権限APIをWeb UIへ接続してください。最後に差分ログ、保留、進捗サマリー、残作業一覧、推定完成度、次回用短縮プロンプトを出してください。
+Shota-Zaki/License-Base リポジトリの `CHATGPT_READ_FIRST.md` と `docs/AI_WORK_STATE.md` を最初に確認してください。`feat/mvp-foundation-v2` / PR #1 を起点に、License Base / Engineer-License-Lab / FE Practice Lab のWeb MVPを進めてください。前回、認証後の進捗保存・見直し・課金権限確認のMVP API土台を追加しました。MVP段階ではログイン必須APIを暫定的に `x-user-email` ヘッダーで識別します。追加済みAPIは `POST /v1/attempts`、`POST /v1/attempts/:attemptId/answers`、`POST /v1/attempts/:attemptId/submit`、`GET /v1/attempts/:attemptId/result`、`GET /v1/me/progress`、`GET /v1/me/review-items`、`POST /v1/me/bookmarks`、`DELETE /v1/me/bookmarks/:bookmarkId`、`GET /v1/plans`、`GET /v1/me/entitlements` です。`tools/license_base_smoke.sh` もこれらを含む形へ拡張済みです。GitHub Actions `MVP verification` run #28 は completed / success で、frozen lockfile状態の install、static-check、build、PostgreSQL service、Prisma migrate、seed、API/Web起動、API/Web待機、拡張HTTP smoke まで成功済みです。ただし、この実行環境では外部DNS不可、pnpm未導入、Docker未導入のため、ローカルの pnpm install、DB起動、Prisma generate / migrate / seed、API/Web起動、実HTTP smoke、PC幅・スマホ幅確認は未実行です。未実行チェックは成功扱いせず、次はネットワーク利用可能なローカル環境で `pnpm install --frozen-lockfile` とローカル実行検証を進め、続いて進捗保存API・見直しAPI・権限APIをWeb UIへ接続してください。最後に差分ログ、保留、進捗サマリー、残作業一覧、推定完成度、次回用短縮プロンプトを出してください。
