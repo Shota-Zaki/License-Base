@@ -2,7 +2,7 @@
 
 ## 現在状態
 
-License Base / Engineer-License-Lab / FE Practice Lab のWeb MVPを継続中。`feat/mvp-foundation-v2` / PR #1 を起点に、Prisma schema拡張後に未対応だった `packages/db/prisma/seed.ts` を最小修正した。
+License Base / Engineer-License-Lab / FE Practice Lab のWeb MVPを継続中。`feat/mvp-foundation-v2` / PR #1 を起点に、添付されたEEL runtime import bundleを確認し、FE公式確認済み問題の一部をMVP seedへ接続した。
 
 ## 確定方針
 
@@ -18,14 +18,19 @@ License Base / Engineer-License-Lab / FE Practice Lab のWeb MVPを継続中。`
 
 ## 今回作成・更新したもの
 
-- `packages/db/prisma/seed.ts` に `Question.slug` と `PracticeSet.accessLevel` を追加
-- seedの問題検索を `title` ではなく `slug` 基準へ変更
-- ローカル実行環境を確認
+- 添付ZIPの `runtime_import/` を確認
+- FE公式確認済み884問、FEテキスト限定1032問、FE正答なし286問、FE AI生成200問の分類を確認
+- `packages/db/prisma/seed-data/fe-mvp-questions.json` を追加
+- `packages/db/prisma/seed.ts` をseed-data読込方式へ変更
+- FE無料サンプル演習を、添付データ由来の公式確認済み5問で構成するよう変更
+- `docs/DATA_IMPORT.md` を追加
 - `docs/AI_WORK_STATE.md` を更新
 
 ## 変更ファイル
 
+- `packages/db/prisma/seed-data/fe-mvp-questions.json`
 - `packages/db/prisma/seed.ts`
+- `docs/DATA_IMPORT.md`
 - `docs/AI_WORK_STATE.md`
 
 ## 未完了
@@ -43,7 +48,7 @@ License Base / Engineer-License-Lab / FE Practice Lab のWeb MVPを継続中。`
 - スマホ幅確認
 - 認証プロバイダ確定
 - 決済プロバイダ詳細設定
-- 既存問題データの投入形式確認
+- 既存問題データの全件投入形式確認
 - 既存問題データの品質確認
 - 進捗保存APIの実装
 - 見直し・復習APIの実装
@@ -62,6 +67,9 @@ License Base / Engineer-License-Lab / FE Practice Lab のWeb MVPを継続中。`
 - 決済プロバイダの本番設定
 - `.env.example` ではなく `env.example` として追加済み
 - 問題詳細・演習詳細で正答情報を返しているため、提出前非公開仕様への分離が必要
+- FEテキスト限定1032問はvisualHtml非表示ルート実装後に投入
+- FE正答なし286問は出題不可
+- FE AI生成200問は公式問題と分離しレビュー待ち
 - この実行環境では `github.com` と npm registry の名前解決に失敗
 - この実行環境では `pnpm` と Docker が未導入
 
@@ -85,21 +93,22 @@ License Base / Engineer-License-Lab / FE Practice Lab のWeb MVPを継続中。`
 2. ネットワーク利用可能な環境で `pnpm install` を実行し、lockfileを生成する
 3. Docker PostgreSQLを起動する
 4. Prisma generate / migrate / seed を実行する
-5. Prisma schemaとAPI型の不整合を修正する
+5. seed-data読込とPrisma schema/API型の不整合を修正する
 6. APIを起動し、主要エンドポイントを実HTTP確認する
 7. Webを起動し、PC幅・スマホ幅で確認する
 8. 正答公開仕様を提出後表示へ分離する
+9. FEテキスト限定問題のvisualHtml非表示取込ルートを設計する
 
 ## 推定完成度
 
-- 企画・要件: 45%
-- アーキテクチャ: 40%
-- DB設計: 40%
+- 企画・要件: 47%
+- アーキテクチャ: 42%
+- DB設計: 42%
 - UI方針: 35%
-- 実装: 24%
+- 実装: 27%
 - 検証: 0%
-- 引継ぎ整備: 82%
+- 引継ぎ整備: 85%
 
 ## 次回用短縮プロンプト
 
-Shota-Zaki/License-Base リポジトリの `CHATGPT_READ_FIRST.md` と `docs/AI_WORK_STATE.md` を最初に確認してください。`feat/mvp-foundation-v2` / PR #1 を起点に、License Base / Engineer-License-Lab / FE Practice Lab のWeb MVPを進めてください。前回 `packages/db/prisma/seed.ts` に `Question.slug` と `PracticeSet.accessLevel` を追加し、seedの新schema対応を最小修正済みです。ネットワーク利用可能な環境で pnpm install、lockfile生成、DB起動、Prisma generate / migrate / seed、API/Web起動、実HTTP smoke、PC幅・スマホ幅確認を優先してください。未実行チェックは成功扱いせず、最後に差分ログ、保留、進捗サマリー、残作業一覧、推定完成度、次回用短縮プロンプトを出してください。
+Shota-Zaki/License-Base リポジトリの `CHATGPT_READ_FIRST.md` と `docs/AI_WORK_STATE.md` を最初に確認してください。`feat/mvp-foundation-v2` / PR #1 を起点に、License Base / Engineer-License-Lab / FE Practice Lab のWeb MVPを進めてください。前回、添付EEL runtime import bundleを確認し、FE公式確認済み5問を `packages/db/prisma/seed-data/fe-mvp-questions.json` に追加、`packages/db/prisma/seed.ts` をseed-data読込方式へ変更、`docs/DATA_IMPORT.md` を追加済みです。ネットワーク利用可能な環境で pnpm install、lockfile生成、DB起動、Prisma generate / migrate / seed、API/Web起動、実HTTP smoke、PC幅・スマホ幅確認を優先してください。未実行チェックは成功扱いせず、最後に差分ログ、保留、進捗サマリー、残作業一覧、推定完成度、次回用短縮プロンプトを出してください。
