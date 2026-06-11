@@ -1,21 +1,83 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, NotFoundException, Param } from '@nestjs/common';
+import { prisma } from '@license-base/db';
 
 @Controller('questions')
 export class QuestionsController {
   @Get('sample')
-  getSampleQuestion() {
+  async getSampleQuestion() {
+    const question = await prisma.question.findFirst({
+      where: { status: 'PUBLISHED', isFree: true },
+      orderBy: { createdAt: 'asc' },
+      include: {
+        unit: true,
+        choices: { orderBy: { sortOrder: 'asc' } },
+        explanation: true,
+        sources: true
+      }
+    });
+
+    if (!question) {
+      throw new NotFoundException({ error: { code: 'QUESTION_NOT_FOUND', message: '公開中のサンプル問題が見つかりません。' } });
+    }
+
     return {
       data: {
-        id: 'sample-binary-001',
-        title: 'サンプル問題: 2進数',
-        body: '10進数の13を2進数で表したものとして、適切なものはどれか。',
-        choices: [
-          { id: 'a', label: 'ア', body: '1011' },
-          { id: 'b', label: 'イ', body: '1101' },
-          { id: 'c', label: 'ウ', body: '1110' },
-          { id: 'd', label: 'エ', body: '1001' }
-        ],
-        isFree: true
+        id: question.id,
+        slug: question.slug,
+        title: question.title,
+        body: question.body,
+        difficulty: question.difficulty,
+        isFree: question.isFree,
+        accessLevel: question.accessLevel,
+        unit: { id: question.unit.id, slug: question.unit.slug, title: question.unit.title },
+        choices: question.choices.map((choice) => ({ id: choice.id, label: choice.label, body: choice.body })),
+        explanation: question.explanation ? { bodyMd: question.explanation.bodyMd } : null,
+        sources: question.sources.map((source) => ({
+          sourceType: source.sourceType,
+          sourceName: source.sourceName,
+          sourceUrl: source.sourceUrl,
+          licenseNote: source.licenseNote,
+          verificationStatus: source.verificationStatus
+        }))
+      }
+    };
+  }
+
+  @Get(':questionId')
+  async getQuestion(@Param('questionId') questionId: string) {
+    const question = await prisma.question.findFirst({
+      where: { OR: [{ id: questionId }, { slug: questionId }], status: 'PUBLISHED' },
+      include: {
+        unit: true,
+        choices: { orderBy: { sortOrder: 'asc' } },
+        explanation: true,
+        sources: true
+      }
+    });
+
+    if (!question) {
+      throw new NotFoundException({ error: { code: 'QUESTION_NOT_FOUND', message: '指定された問題が見つかりません。' } });
+    }
+
+    return {
+      data: {
+        id: question.id,
+        slug: question.slug,
+        title: question.title,
+        body: question.body,
+        difficulty: question.difficulty,
+        isFree: question.isFree,
+        accessLevel: question.accessLevel,
+        unit: { id: question.unit.id, slug: question.unit.slug, title: question.unit.title },
+        choices: question.choices.map((choice) => ({ id: choice.id, label: choice.label, body: choice.body, isCorrect: choice.isCorrect })),
+        explanation: question.explanation ? { bodyMd: question.explanation.bodyMd } : null,
+        sources: question.sources.map((source) => ({
+          sourceType: source.sourceType,
+          sourceName: source.sourceName,
+          sourceUrl: source.sourceUrl,
+          licenseNote: source.licenseNote,
+          verificationStatus: source.verificationStatus
+        }))
       }
     };
   }
