@@ -1,43 +1,66 @@
-const units = [
-  '科目A',
-  '科目B',
-  'テクノロジ系',
-  'マネジメント系',
-  'ストラテジ系',
-  '情報セキュリティ',
-  'アルゴリズム',
-  'データベース'
-];
+import { getCourseDetail } from '../../../lib/api';
 
-export default function FePracticeLabPage() {
+export const dynamic = 'force-dynamic';
+
+export default async function FePracticeLabPage() {
+  const course = await getCourseDetail('fe-practice-lab');
+
   return (
     <main className="page-shell">
       <section className="hero">
-        <div className="eyebrow">Engineer-License-Lab</div>
-        <h1>FE Practice Lab</h1>
-        <p>
-          基本情報技術者試験向けに、単元別学習、問題演習、解説、復習、進捗管理を提供するMVPです。
-          ゲストは一部閲覧でき、進捗保存にはログインが必要です。
-        </p>
+        <div className="eyebrow">{course.lab.nameEn}</div>
+        <h1>{course.title}</h1>
+        <p>{course.description}</p>
+        <div className="action-row">
+          <a className="button primary" href="/engineer-license-lab/fe/practice/fe-free-sample-set">サンプル演習を始める</a>
+          <a className="button" href="/engineer-license-lab/fe/dashboard">ダッシュボードを見る</a>
+          <a className="button" href="#units">単元を見る</a>
+        </div>
+      </section>
+
+      <section className="section-heading" id="units">
+        <div>
+          <div className="eyebrow">Units</div>
+          <h2>単元一覧</h2>
+        </div>
+        <p>単元別の入口、演習、解説表示を先に固めます。</p>
       </section>
 
       <section className="card-grid" aria-label="単元一覧">
-        {units.map((unit) => (
-          <article className="card" key={unit}>
-            <h2>{unit}</h2>
-            <p>演習・解説・復習をこの単元に紐づけて管理します。</p>
+        {course.units.map((unit) => (
+          <article className="card unit-card" key={unit.slug}>
+            <div className="card-topline">
+              <span className="badge muted">{unit.sortOrder}</span>
+              <span className="small-text">問題 {unit.questionCount}</span>
+            </div>
+            <h2>{unit.title}</h2>
+            <p>{unit.description ?? '演習・解説・復習をこの単元に紐づけて管理します。'}</p>
           </article>
         ))}
       </section>
 
-      <section className="card" aria-label="サンプル問題">
-        <h2>サンプル問題</h2>
-        <p>10進数の13を2進数で表したものとして、適切なものはどれか。</p>
-        <ul className="choice-list">
-          {['ア 1011', 'イ 1101', 'ウ 1110', 'エ 1001'].map((choice) => (
-            <li className="choice-item" key={choice}>{choice}</li>
-          ))}
-        </ul>
+      <section className="section-heading">
+        <div>
+          <div className="eyebrow">Practice</div>
+          <h2>演習セット</h2>
+        </div>
+      </section>
+
+      <section className="card-grid two-column" aria-label="演習セット">
+        {course.practiceSets.map((practiceSet) => (
+          <article className="card" key={practiceSet.slug}>
+            <div className="card-topline">
+              <span className="badge">{practiceSet.isFree ? 'Free' : practiceSet.accessLevel}</span>
+              <span className="small-text">{practiceSet.questionCount}問</span>
+            </div>
+            <h2>{practiceSet.title}</h2>
+            <p>{practiceSet.description}</p>
+            <div className="card-action-row action-row">
+              <a className="button primary" href={`/engineer-license-lab/fe/practice/${practiceSet.slug}`}>演習を開く</a>
+              <a className="button" href="/engineer-license-lab/fe/dashboard">進捗を見る</a>
+            </div>
+          </article>
+        ))}
       </section>
     </main>
   );

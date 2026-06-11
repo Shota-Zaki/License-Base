@@ -1,0 +1,87 @@
+[
+  {
+    "slug": "fe-ipa-2025r07-a-001",
+    "unitSlug": "fe-public-2025r07-subject-a",
+    "unitTitle": "令和7年度公開問題 科目A",
+    "title": "令和7年度 基本情報技術者試験 公開問題",
+    "body": "大規模言語モデルを用いた自然言語処理において，事前学習済みのモデルに対して行う，ファインチューニングに関する記述として，最も適切なものはどれか。",
+    "difficulty": 2,
+    "choices": [
+      { "label": "ア", "body": "強化学習を行い，最適な結果が得られるようにする。", "isCorrect": false },
+      { "label": "イ", "body": "事前学習と同じデータを繰り返し用いて学習を行い，モデルの精度を高めるようにする。", "isCorrect": false },
+      { "label": "ウ", "body": "大量のテキストデータを用いて学習を行い，モデルの精度を高めるようにする。", "isCorrect": false },
+      { "label": "エ", "body": "特定のデータを用いて追加で学習を行い，目的とするタスクに適用できるようにする。", "isCorrect": true }
+    ],
+    "explanation": "ファインチューニングは，広いデータで事前学習したモデルを出発点にし，特定の業務・分類・応答形式などに合うデータで追加学習させる調整である。最初から大量テキストで汎用モデルを作る処理ではなく，既存モデルを目的タスクへ適用しやすくする段階を問う設問である。",
+    "source": { "sourceType": "IPA_OFFICIAL", "sourceName": "出典：令和7年度 基本情報技術者試験 公開問題", "sourceUrl": "https://www.ipa.go.jp/shiken/mondai-kaiotu/sg_fe/koukai/2025r07.html", "licenseNote": "IPA公開問題を出典明記の上で収録。解説は本サイトで新規作成。", "verificationStatus": "official_checked" },
+    "runtime": { "importGate": "READY_OFFICIAL", "sourceBucket": "fe_official_ready", "visualPolicy": "ALLOW_VISUAL_HTML" }
+  },
+  {
+    "slug": "fe-ipa-2025r07-a-002",
+    "unitSlug": "fe-public-2025r07-subject-a",
+    "unitTitle": "令和7年度公開問題 科目A",
+    "title": "令和7年度 基本情報技術者試験 公開問題",
+    "body": "浮動小数点形式で表現された数値の演算結果における丸め誤差の説明はどれか。",
+    "difficulty": 2,
+    "choices": [
+      { "label": "ア", "body": "演算結果がコンピュータの扱える最大値を超えることによって生じる誤差である。", "isCorrect": false },
+      { "label": "イ", "body": "数表現のけた数に限度があるので，最下位けたより小さい部分について四捨五入や切上げ，切捨てを行うことによって生じる誤差である。", "isCorrect": true },
+      { "label": "ウ", "body": "乗除算において，指数部が小さい方の数値の仮数部の下位部分が失われることによって生じる誤差である。", "isCorrect": false },
+      { "label": "エ", "body": "絶対値がほぼ等しい数値の加減算において，上位の有効数字が失われることによって生じる誤差である。", "isCorrect": false }
+    ],
+    "explanation": "丸め誤差は，浮動小数点形式で保持できる有効桁数に限りがあるため，演算結果の下位部分を切捨て・切上げ・四捨五入などで丸めることで生じる誤差である。最大値超過によるあふれ，桁落ち，情報落ちとは発生原因が異なる。",
+    "source": { "sourceType": "IPA_OFFICIAL", "sourceName": "出典：令和7年度 基本情報技術者試験 公開問題", "sourceUrl": "https://www.ipa.go.jp/shiken/mondai-kaiotu/sg_fe/koukai/2025r07.html", "licenseNote": "IPA公開問題を出典明記の上で収録。解説は本サイトで新規作成。", "verificationStatus": "official_checked" },
+    "runtime": { "importGate": "READY_OFFICIAL", "sourceBucket": "fe_official_ready", "visualPolicy": "ALLOW_VISUAL_HTML" }
+  },
+  {
+    "slug": "fe-ipa-2025r07-a-004",
+    "unitSlug": "fe-public-2025r07-subject-a",
+    "unitTitle": "令和7年度公開問題 科目A",
+    "title": "令和7年度 基本情報技術者試験 公開問題",
+    "body": "MTBFは4,000時間，MTTRは1,000時間の装置がある。今後の6年間は，予防保守によってMTBFを前年に比べて毎年100時間ずつ改善し，遠隔保守によってMTTRを前年に比べて毎年100時間ずつ改善していく計画である。6年経過後の稼働率は幾らか。",
+    "difficulty": 2,
+    "choices": [
+      { "label": "ア", "body": "0.88", "isCorrect": false },
+      { "label": "イ", "body": "0.90", "isCorrect": false },
+      { "label": "ウ", "body": "0.92", "isCorrect": true },
+      { "label": "エ", "body": "0.94", "isCorrect": false }
+    ],
+    "explanation": "稼働率は MTBF ÷ (MTBF + MTTR) で求める。6年間でMTBFは毎年100時間ずつ増えるので4,600時間，MTTRは毎年100時間ずつ短くなるので400時間になる。したがって 4,600 ÷ (4,600 + 400) = 4,600 ÷ 5,000 = 0.92 である。",
+    "source": { "sourceType": "IPA_OFFICIAL", "sourceName": "出典：令和7年度 基本情報技術者試験 公開問題", "sourceUrl": "https://www.ipa.go.jp/shiken/mondai-kaiotu/sg_fe/koukai/2025r07.html", "licenseNote": "IPA公開問題を出典明記の上で収録。解説は本サイトで新規作成。", "verificationStatus": "official_checked" },
+    "runtime": { "importGate": "READY_OFFICIAL", "sourceBucket": "fe_official_ready", "visualPolicy": "ALLOW_VISUAL_HTML" }
+  },
+  {
+    "slug": "fe-ipa-2025r07-a-005",
+    "unitSlug": "fe-public-2025r07-subject-a",
+    "unitTitle": "令和7年度公開問題 科目A",
+    "title": "令和7年度 基本情報技術者試験 公開問題",
+    "body": "ローコード開発ツールを用いたソフトウェア開発の説明はどれか。",
+    "difficulty": 2,
+    "choices": [
+      { "label": "ア", "body": "アプリケーションソフトウェアの開発基盤の上で，用意された部品やテンプレートをGUIを用いた操作で組み合わせたり，必要に応じて一部の処理のソースコードを記述したりすることによって，アプリケーションソフトウェアを作成する。", "isCorrect": true },
+      { "label": "イ", "body": "アプリケーションソフトウェアの開発基盤の上で，用意された部品やテンプレートをGUIを用いた操作で組み合わせるだけで，ソースコードを記述せずに，アプリケーションソフトウェアを作成する。", "isCorrect": false },
+      { "label": "ウ", "body": "アプリケーションソフトウェアの定型的な枠組みを参照して，独自の処理のソースコードを記述することによって，アプリケーションソフトウェアを作成する。", "isCorrect": false },
+      { "label": "エ", "body": "利用者がシステムを利用して行う作業を自動化ツールに代行させるために，利用者によるシステムの操作手順をツールに登録する。", "isCorrect": false }
+    ],
+    "explanation": "ローコード開発は，用意された部品やテンプレートをGUIで組み合わせることを中心にしつつ，必要に応じて一部の処理をコードで補う開発方式である。コード記述を完全になくすノーコード，枠組みだけを使って主にコードを書くフレームワーク利用，利用者操作を自動化するRPAとは区別する。",
+    "source": { "sourceType": "IPA_OFFICIAL", "sourceName": "出典：令和7年度 基本情報技術者試験 公開問題", "sourceUrl": "https://www.ipa.go.jp/shiken/mondai-kaiotu/sg_fe/koukai/2025r07.html", "licenseNote": "IPA公開問題を出典明記の上で収録。解説は本サイトで新規作成。", "verificationStatus": "official_checked" },
+    "runtime": { "importGate": "READY_OFFICIAL", "sourceBucket": "fe_official_ready", "visualPolicy": "ALLOW_VISUAL_HTML" }
+  },
+  {
+    "slug": "fe-ipa-2025r07-a-007",
+    "unitSlug": "fe-public-2025r07-subject-a",
+    "unitTitle": "令和7年度公開問題 科目A",
+    "title": "令和7年度 基本情報技術者試験 公開問題",
+    "body": "1Gバイトの動画データを40Mビット／秒の回線を使用してダウンロードしたところ，5分掛かった。このときの回線利用率はおよそ何％か。ここで，ダウンロード時には動画データに20％の制御情報が付加されるものとする。",
+    "difficulty": 2,
+    "choices": [
+      { "label": "ア", "body": "10", "isCorrect": false },
+      { "label": "イ", "body": "53", "isCorrect": false },
+      { "label": "ウ", "body": "67", "isCorrect": false },
+      { "label": "エ", "body": "80", "isCorrect": true }
+    ],
+    "explanation": "1Gバイトは8Gビットであり，制御情報20%を加えると転送対象は9.6Gビットになる。40Mビット/秒の回線を5分，すなわち300秒使ったときの最大転送量は12Gビットである。回線利用率は 9.6 ÷ 12 = 0.8 なので，およそ80%である。",
+    "source": { "sourceType": "IPA_OFFICIAL", "sourceName": "出典：令和7年度 基本情報技術者試験 公開問題", "sourceUrl": "https://www.ipa.go.jp/shiken/mondai-kaiotu/sg_fe/koukai/2025r07.html", "licenseNote": "IPA公開問題を出典明記の上で収録。解説は本サイトで新規作成。", "verificationStatus": "official_checked" },
+    "runtime": { "importGate": "READY_OFFICIAL", "sourceBucket": "fe_official_ready", "visualPolicy": "ALLOW_VISUAL_HTML" }
+  }
+]

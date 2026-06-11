@@ -21,11 +21,61 @@ enum AccessLevel {
   ADMIN
 }
 
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  EXPIRED
+}
+
+enum AttemptStatus {
+  IN_PROGRESS
+  SUBMITTED
+  ABANDONED
+}
+
+enum ContentImportStatus {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+  CANCELED
+}
+
+enum EntitlementScope {
+  ALL
+  LAB
+  CERTIFICATION
+  COURSE
+  UNIT
+}
+
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                String             @id @default(cuid())
+  email             String             @unique
+  externalAuthId    String?            @unique
+  accessLevel       AccessLevel        @default(FREE)
+  profile           UserProfile?
+  attempts          Attempt[]
+  bookmarks         Bookmark[]
+  reviewItems       ReviewItem[]
+  progressSnapshots ProgressSnapshot[]
+  subscriptions     Subscription[]
+  entitlements      Entitlement[]
+  adminAuditLogs    AdminAuditLog[]     @relation("AdminAuditActor")
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+}
+
+model UserProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  displayName String?
+  timezone    String   @default("Asia/Tokyo")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Lab {
@@ -37,22 +87,28 @@ model Lab {
   sortOrder      Int             @default(0)
   isActive       Boolean         @default(true)
   certifications Certification[]
+  entitlements   Entitlement[]
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
+
+  @@index([isActive, sortOrder])
 }
 
 model Certification {
-  id          String     @id @default(cuid())
-  labId       String
-  slug        String     @unique
-  name        String
-  displayName String
-  description String?
-  lab         Lab        @relation(fields: [labId], references: [id], onDelete: Cascade)
-  courses     Course[]
-  questions   Question[]
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id           String        @id @default(cuid())
+  labId        String
+  slug         String        @unique
+  name         String
+  displayName  String
+  description  String?
+  lab          Lab           @relation(fields: [labId], references: [id], onDelete: Cascade)
+  courses      Course[]
+  questions    Question[]
+  entitlements Entitlement[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@index([labId])
 }
 
 model Course {
@@ -61,50 +117,102 @@ model Course {
   slug            String        @unique
   title           String
   description     String?
+  sortOrder       Int           @default(0)
+  isActive        Boolean       @default(true)
   certification   Certification @relation(fields: [certificationId], references: [id], onDelete: Cascade)
   units           Unit[]
+  lessons         Lesson[]
   practiceSets    PracticeSet[]
+  entitlements    Entitlement[]
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
+
+  @@index([certificationId, sortOrder])
+  @@index([isActive])
 }
 
 model Unit {
-  id        String     @id @default(cuid())
-  courseId  String
-  slug      String     @unique
-  title     String
-  sortOrder Int        @default(0)
-  course    Course     @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  questions Question[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id           String             @id @default(cuid())
+  courseId     String
+  slug         String             @unique
+  title        String
+  description  String?
+  sortOrder    Int                @default(0)
+  isPublished  Boolean            @default(true)
+  course       Course             @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons      Lesson[]
+  questions    Question[]
+  entitlements Entitlement[]
+  snapshots    ProgressSnapshot[]
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  @@index([courseId, sortOrder])
+  @@index([isPublished])
+}
+
+model Lesson {
+  id          String      @id @default(cuid())
+  courseId    String
+  unitId      String?
+  slug        String      @unique
+  title       String
+  bodyMd      String?
+  accessLevel AccessLevel @default(FREE)
+  isPublished Boolean     @default(false)
+  sortOrder   Int         @default(0)
+  course      Course      @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  unit        Unit?       @relation(fields: [unitId], references: [id], onDelete: SetNull)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([courseId, sortOrder])
+  @@index([unitId])
+  @@index([isPublished, accessLevel])
 }
 
 model Question {
-  id              String          @id @default(cuid())
+  id              String               @id @default(cuid())
   certificationId String
   unitId          String
-  status          QuestionStatus  @default(DRAFT)
+  slug            String               @unique
+  status          QuestionStatus       @default(DRAFT)
+  accessLevel     AccessLevel          @default(FREE)
   title           String?
   body            String
-  isFree          Boolean         @default(false)
-  certification   Certification   @relation(fields: [certificationId], references: [id], onDelete: Cascade)
-  unit            Unit            @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  difficulty      Int                  @default(1)
+  isFree          Boolean              @default(false)
+  publishedAt     DateTime?
+  certification   Certification        @relation(fields: [certificationId], references: [id], onDelete: Cascade)
+  unit            Unit                 @relation(fields: [unitId], references: [id], onDelete: Cascade)
   choices         QuestionChoice[]
   explanation     QuestionExplanation?
   sources         QuestionSource[]
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  practiceSets    PracticeSetQuestion[]
+  attemptAnswers  AttemptAnswer[]
+  bookmarks       Bookmark[]
+  reviewItems     ReviewItem[]
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  @@index([certificationId])
+  @@index([unitId, status])
+  @@index([status, isFree])
+  @@index([accessLevel])
 }
 
 model QuestionChoice {
-  id         String   @id @default(cuid())
-  questionId String
-  label      String
-  body       String
-  isCorrect  Boolean  @default(false)
-  sortOrder  Int      @default(0)
-  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  id             String          @id @default(cuid())
+  questionId     String
+  label          String
+  body           String
+  isCorrect      Boolean         @default(false)
+  sortOrder      Int             @default(0)
+  question       Question        @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  attemptAnswers AttemptAnswer[]
+
+  @@unique([questionId, label])
+  @@index([questionId, sortOrder])
 }
 
 model QuestionExplanation {
@@ -112,6 +220,8 @@ model QuestionExplanation {
   questionId String   @unique
   bodyMd     String
   question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 model QuestionSource {
@@ -120,8 +230,14 @@ model QuestionSource {
   sourceType          String
   sourceName          String?
   sourceUrl           String?
+  licenseNote         String?
   verificationStatus  String   @default("unverified")
   question            Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([questionId])
+  @@index([verificationStatus])
 }
 
 model PracticeSet {
@@ -130,12 +246,17 @@ model PracticeSet {
   slug        String                @unique
   title       String
   description String?
+  accessLevel AccessLevel           @default(FREE)
   isFree      Boolean               @default(false)
   isPublished Boolean               @default(false)
   course      Course                @relation(fields: [courseId], references: [id], onDelete: Cascade)
   questions   PracticeSetQuestion[]
+  attempts    Attempt[]
   createdAt   DateTime              @default(now())
   updatedAt   DateTime              @updatedAt
+
+  @@index([courseId, isPublished])
+  @@index([accessLevel, isFree])
 }
 
 model PracticeSetQuestion {
@@ -145,17 +266,196 @@ model PracticeSetQuestion {
   sortOrder     Int         @default(0)
   practiceSet   PracticeSet @relation(fields: [practiceSetId], references: [id], onDelete: Cascade)
   question      Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
   @@unique([practiceSetId, questionId])
+  @@index([practiceSetId, sortOrder])
+}
+
+model Attempt {
+  id            String          @id @default(cuid())
+  userId        String?
+  practiceSetId String?
+  status        AttemptStatus   @default(IN_PROGRESS)
+  startedAt     DateTime        @default(now())
+  submittedAt   DateTime?
+  totalCount    Int             @default(0)
+  correctCount  Int             @default(0)
+  scorePercent  Int             @default(0)
+  user          User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  practiceSet   PracticeSet?    @relation(fields: [practiceSetId], references: [id], onDelete: SetNull)
+  answers       AttemptAnswer[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([practiceSetId])
+  @@index([status])
+}
+
+model AttemptAnswer {
+  id          String          @id @default(cuid())
+  attemptId   String
+  questionId  String
+  choiceId    String?
+  isCorrect   Boolean         @default(false)
+  answeredAt  DateTime        @default(now())
+  attempt     Attempt         @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question    Question        @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  choice      QuestionChoice? @relation(fields: [choiceId], references: [id], onDelete: SetNull)
+
+  @@unique([attemptId, questionId])
+  @@index([questionId])
+}
+
+model Bookmark {
+  id         String   @id @default(cuid())
+  userId     String
+  questionId String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, questionId])
+  @@index([questionId])
+}
+
+model ReviewItem {
+  id         String   @id @default(cuid())
+  userId     String
+  questionId String
+  reason     String?
+  dueAt      DateTime?
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([userId, questionId])
+  @@index([userId, dueAt])
+}
+
+model ProgressSnapshot {
+  id              String   @id @default(cuid())
+  userId          String
+  unitId          String?
+  completedCount  Int      @default(0)
+  correctCount    Int      @default(0)
+  attemptedCount  Int      @default(0)
+  lastStudiedAt   DateTime?
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  unit            Unit?    @relation(fields: [unitId], references: [id], onDelete: SetNull)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([userId, unitId])
+  @@index([userId, lastStudiedAt])
 }
 
 model Plan {
-  id              String      @id @default(cuid())
-  slug            String      @unique
+  id              String         @id @default(cuid())
+  slug            String         @unique
   name            String
   accessLevel     AccessLevel
   priceMonthlyJpy Int?
   description     String?
-  isActive        Boolean     @default(true)
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  isActive        Boolean        @default(true)
+  subscriptions   Subscription[]
+  entitlements    Entitlement[]
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([isActive])
+}
+
+model Subscription {
+  id                     String             @id @default(cuid())
+  userId                 String
+  planId                 String
+  status                 SubscriptionStatus @default(ACTIVE)
+  provider               String?
+  providerSubscriptionId String?            @unique
+  currentPeriodStart     DateTime?
+  currentPeriodEnd       DateTime?
+  cancelAtPeriodEnd      Boolean            @default(false)
+  user                   User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan                   Plan               @relation(fields: [planId], references: [id], onDelete: Restrict)
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+
+  @@index([userId, status])
+  @@index([planId])
+}
+
+model Entitlement {
+  id              String           @id @default(cuid())
+  userId          String?
+  planId          String?
+  scope           EntitlementScope @default(ALL)
+  accessLevel     AccessLevel      @default(FREE)
+  labId           String?
+  certificationId String?
+  courseId        String?
+  unitId          String?
+  startsAt        DateTime         @default(now())
+  expiresAt       DateTime?
+  user            User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan            Plan?            @relation(fields: [planId], references: [id], onDelete: Cascade)
+  lab             Lab?             @relation(fields: [labId], references: [id], onDelete: Cascade)
+  certification   Certification?   @relation(fields: [certificationId], references: [id], onDelete: Cascade)
+  course          Course?          @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  unit            Unit?            @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([userId, scope])
+  @@index([planId])
+  @@index([labId])
+  @@index([certificationId])
+  @@index([courseId])
+  @@index([unitId])
+}
+
+model PaymentEvent {
+  id          String    @id @default(cuid())
+  provider    String
+  eventId     String    @unique
+  eventType   String
+  payload     Json
+  processedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([provider, eventType])
+}
+
+model AdminAuditLog {
+  id          String   @id @default(cuid())
+  actorUserId String?
+  action      String
+  targetType  String
+  targetId    String?
+  before      Json?
+  after       Json?
+  actor       User?    @relation("AdminAuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+
+  @@index([actorUserId, createdAt])
+  @@index([targetType, targetId])
+}
+
+model ContentImportJob {
+  id             String              @id @default(cuid())
+  status         ContentImportStatus @default(QUEUED)
+  sourceType     String
+  sourceName     String?
+  fileName       String?
+  totalCount     Int                 @default(0)
+  importedCount  Int                 @default(0)
+  skippedCount   Int                 @default(0)
+  errorMessage   String?
+  startedAt      DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  @@index([status, createdAt])
 }

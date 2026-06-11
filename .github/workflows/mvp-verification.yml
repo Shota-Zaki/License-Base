@@ -1,0 +1,163 @@
+name: MVP verification
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PNPM_VERSION: "10.0.0"
+
+jobs:
+  static-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          show-progress: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install pnpm
+        run: |
+          npm install -g pnpm@${PNPM_VERSION}
+          pnpm --version
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm db:generate
+
+      - name: Typecheck
+        run: |
+          set -o pipefail
+          pnpm typecheck 2>&1 | tee /tmp/license-base-typecheck.log
+
+      - name: Upload typecheck diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: typecheck-diagnostics
+          path: /tmp/license-base-typecheck.log
+          if-no-files-found: ignore
+
+      - name: Build
+        run: |
+          set -o pipefail
+          pnpm build 2>&1 | tee /tmp/license-base-build.log
+
+      - name: Upload build diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-diagnostics
+          path: /tmp/license-base-build.log
+          if-no-files-found: ignore
+
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: static-check
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: app_user
+          POSTGRES_PASSWORD: change_me
+          POSTGRES_DB: license_base
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U app_user -d license_base"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://app_user:change_me@localhost:5432/license_base?schema=public
+      API_PORT: "4000"
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:4000/v1
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          show-progress: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install pnpm
+        run: |
+          npm install -g pnpm@${PNPM_VERSION}
+          pnpm --version
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm db:generate
+
+      - name: Run Prisma migration
+        run: pnpm db:migrate
+
+      - name: Seed database
+        run: pnpm db:seed
+
+      - name: Start API and Web
+        run: |
+          pnpm dev:api > /tmp/license-base-api.log 2>&1 &
+          echo $! > /tmp/license-base-api.pid
+          pnpm dev:web > /tmp/license-base-web.log 2>&1 &
+          echo $! > /tmp/license-base-web.pid
+
+      - name: Wait for API
+        run: |
+          for i in {1..60}; do
+            if curl --fail --show-error --silent http://localhost:4000/v1/health > /tmp/license-base-health.json; then
+              cat /tmp/license-base-health.json
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/license-base-api.log
+          exit 1
+
+      - name: Wait for Web
+        run: |
+          for i in {1..60}; do
+            if curl --fail --show-error --silent http://localhost:3000/engineer-license-lab/fe > /tmp/license-base-fe.html; then
+              head -c 1200 /tmp/license-base-fe.html
+              echo
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/license-base-web.log
+          exit 1
+
+      - name: Run HTTP smoke
+        run: bash tools/license_base_smoke.sh
+
+      - name: Print server logs on failure
+        if: failure()
+        run: |
+          echo '--- API log ---'
+          cat /tmp/license-base-api.log || true
+          echo '--- Web log ---'
+          cat /tmp/license-base-web.log || true
