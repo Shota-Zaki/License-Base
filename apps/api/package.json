@@ -1,0 +1,25 @@
+{
+  "name": "@license-base/api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nest start --watch",
+    "build": "nest build",
+    "start": "node dist/main.js",
+    "lint": "echo \"lint not configured yet\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@license-base/db": "workspace:*",
+    "@nestjs/common": "latest",
+    "@nestjs/core": "latest",
+    "@nestjs/platform-express": "latest",
+    "reflect-metadata": "latest",
+    "rxjs": "latest"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "latest",
+    "@types/node": "latest",
+    "typescript": "latest"
+  }
+}
