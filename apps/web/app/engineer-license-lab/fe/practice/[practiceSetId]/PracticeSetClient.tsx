@@ -1,23 +1,37 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { gradePracticeSet, type GradePracticeSetResult, type PracticeSetDetail } from '../../../../../lib/api';
+import {
+  addBookmark,
+  gradePracticeSet,
+  saveAttemptAnswers,
+  startAttempt,
+  submitAttempt,
+  type GradePracticeSetResult,
+  type PracticeSetDetail
+} from '../../../../../lib/api';
 
 type PracticeSetClientProps = {
   practiceSet: PracticeSetDetail;
 };
 
+const DEFAULT_MVP_USER_EMAIL = 'mvp-user@example.test';
+
 export function PracticeSetClient({ practiceSet }: PracticeSetClientProps) {
   const [selectedChoices, setSelectedChoices] = useState<Record<string, string>>({});
   const [gradeResult, setGradeResult] = useState<GradePracticeSetResult | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [userEmail, setUserEmail] = useState(DEFAULT_MVP_USER_EMAIL);
+  const [lastSavedAttemptId, setLastSavedAttemptId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [noticeMessage, setNoticeMessage] = useState<string | null>(null);
 
   const resultByQuestionId = useMemo(() => {
     const entries = gradeResult?.results.map((result) => [result.questionId, result] as const) ?? [];
     return new Map(entries);
   }, [gradeResult]);
 
+  const normalizedUserEmail = userEmail.trim().toLowerCase();
   const answeredCount = Object.keys(selectedChoices).length;
   const canSubmit = answeredCount === practiceSet.questions.length && practiceSet.questions.length > 0 && !isSubmitting;
 
@@ -25,24 +39,60 @@ export function PracticeSetClient({ practiceSet }: PracticeSetClientProps) {
     if (!canSubmit) return;
     setIsSubmitting(true);
     setErrorMessage(null);
+    setNoticeMessage(null);
+    setLastSavedAttemptId(null);
+
+    const answers = Object.entries(selectedChoices).map(([questionId, choiceId]) => ({ questionId, choiceId }));
 
     try {
-      const result = await gradePracticeSet(
-        practiceSet.slug,
-        Object.entries(selectedChoices).map(([questionId, choiceId]) => ({ questionId, choiceId }))
-      );
-      setGradeResult(result);
+      if (normalizedUserEmail) {
+        const attempt = await startAttempt(practiceSet.slug, normalizedUserEmail);
+        await saveAttemptAnswers(attempt.id, answers, normalizedUserEmail);
+        const result = await submitAttempt(attempt.id, normalizedUserEmail);
+        setLastSavedAttemptId(result.attemptId);
+        setGradeResult({
+          practiceSetId: result.practiceSetId,
+          totalCount: result.totalCount,
+          correctCount: result.correctCount,
+          scorePercent: result.scorePercent,
+          results: result.results
+        });
+        setNoticeMessage('提出結果を進捗と見直しに保存しました。');
+      } else {
+        const result = await gradePracticeSet(practiceSet.slug, answers);
+        setGradeResult(result);
+        setNoticeMessage('ログイン識別なしで採点しました。進捗保存は行っていません。');
+      }
     } catch {
-      setErrorMessage('採点APIに接続できませんでした。API起動後にもう一度確認してください。');
+      setErrorMessage('採点または進捗保存APIに接続できませんでした。API起動後にもう一度確認してください。');
     } finally {
       setIsSubmitting(false);
+    }
+  }
+
+  async function handleBookmark(questionId: string) {
+    setErrorMessage(null);
+    setNoticeMessage(null);
+
+    if (!normalizedUserEmail) {
+      setErrorMessage('見直しに追加するには、MVP用メールを入力してください。');
+      return;
+    }
+
+    try {
+      await addBookmark(questionId, normalizedUserEmail);
+      setNoticeMessage('見直しに追加しました。');
+    } catch {
+      setErrorMessage('見直し追加APIに接続できませんでした。');
     }
   }
 
   function resetAnswers() {
     setSelectedChoices({});
     setGradeResult(null);
+    setLastSavedAttemptId(null);
     setErrorMessage(null);
+    setNoticeMessage(null);
   }
 
   return (
@@ -52,23 +102,37 @@ export function PracticeSetClient({ practiceSet }: PracticeSetClientProps) {
           <div className="eyebrow">Submit</div>
           <h2>解答を選択して提出</h2>
           <p>{answeredCount} / {practiceSet.questions.length} 問に回答済み</p>
+          <label className="input-label" htmlFor="mvp-user-email">MVP用メール</label>
+          <input
+            id="mvp-user-email"
+            className="text-input"
+            type="email"
+            value={userEmail}
+            onChange={(event) => setUserEmail(event.target.value)}
+            placeholder="progress@example.test"
+          />
+          <p className="helper-text">入力時は進捗・見直しに保存します。空欄の場合は公開採点のみ実行します。</p>
         </div>
         <div className="action-row">
           {gradeResult ? <button className="button" type="button" onClick={resetAnswers}>もう一度解く</button> : null}
           <button className="button primary" type="button" disabled={!canSubmit || Boolean(gradeResult)} onClick={handleSubmit}>
-            {isSubmitting ? '採点中' : '解答を提出する'}
+            {isSubmitting ? '採点中' : normalizedUserEmail ? '保存して提出する' : '解答を提出する'}
           </button>
         </div>
       </section>
 
       {gradeResult ? (
         <section className="score-panel" aria-label="採点結果">
-          <div className="eyebrow">Score</div>
-          <h2>{gradeResult.correctCount} / {gradeResult.totalCount} 問正解</h2>
-          <p>正答率 {gradeResult.scorePercent}%</p>
+          <div>
+            <div className="eyebrow">Score</div>
+            <h2>{gradeResult.correctCount} / {gradeResult.totalCount} 問正解</h2>
+            <p>正答率 {gradeResult.scorePercent}%</p>
+          </div>
+          {lastSavedAttemptId ? <span className="badge">進捗保存済み</span> : <span className="badge muted">公開採点</span>}
         </section>
       ) : null}
 
+      {noticeMessage ? <p className="notice-text">{noticeMessage}</p> : null}
       {errorMessage ? <p className="error-text">{errorMessage}</p> : null}
 
       <section className="practice-stack" aria-label="問題演習">
@@ -82,7 +146,12 @@ export function PracticeSetClient({ practiceSet }: PracticeSetClientProps) {
                 <span className="badge">問{questionIndex + 1}</span>
                 <span className="small-text">{question.unit.title} / 難易度 {question.difficulty}</span>
               </div>
-              <h2>{question.title ?? '問題'}</h2>
+              <div className="question-heading-row">
+                <h2>{question.title ?? '問題'}</h2>
+                <button className="button small-button" type="button" onClick={() => void handleBookmark(question.id)}>
+                  見直しに追加
+                </button>
+              </div>
               <p className="question-body">{question.body}</p>
               <ol className="choice-list labeled-choice-list">
                 {question.choices.map((choice) => {
@@ -105,6 +174,7 @@ export function PracticeSetClient({ practiceSet }: PracticeSetClientProps) {
                         onClick={() => {
                           setSelectedChoices((current) => ({ ...current, [question.id]: choice.id }));
                           setGradeResult(null);
+                          setNoticeMessage(null);
                         }}
                       >
                         <span className="choice-label">{choice.label}</span>
