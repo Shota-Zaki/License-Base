@@ -57,19 +57,109 @@ export type PracticeSetDetail = {
   questions: PracticeQuestion[];
 };
 
+export type GradeResultRow = {
+  questionId: string;
+  slug: string;
+  submittedChoiceId: string | null;
+  isCorrect: boolean;
+  correctChoice: { id: string; label: string; body: string } | null;
+  explanation: { bodyMd: string } | null;
+};
+
 export type GradePracticeSetResult = {
   practiceSetId: string;
   totalCount: number;
   correctCount: number;
   scorePercent: number;
-  results: Array<{
-    questionId: string;
+  results: GradeResultRow[];
+};
+
+export type AttemptSummary = {
+  id: string;
+  practiceSetId: string;
+  practiceSetSlug: string;
+  status: string;
+  totalCount: number;
+  correctCount: number;
+  scorePercent: number;
+  startedAt: string;
+};
+
+export type AttemptResult = GradePracticeSetResult & {
+  attemptId: string;
+  status: string;
+  submittedAt: string | null;
+};
+
+export type ProgressSnapshot = {
+  id: string;
+  unit: { id: string; slug: string; title: string; course: { id: string; slug: string; title: string } } | null;
+  completedCount: number;
+  attemptedCount: number;
+  correctCount: number;
+  lastStudiedAt: string | null;
+  updatedAt: string;
+};
+
+export type ReviewItem = {
+  id: string;
+  reason: string | null;
+  dueAt: string | null;
+  question: {
+    id: string;
     slug: string;
-    submittedChoiceId: string | null;
-    isCorrect: boolean;
-    correctChoice: { id: string; label: string; body: string } | null;
-    explanation: { bodyMd: string } | null;
+    title: string | null;
+    difficulty: number;
+    unit: { id: string; slug: string; title: string };
+  };
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type PlanSummary = {
+  id: string;
+  slug: string;
+  name: string;
+  accessLevel: string;
+  priceMonthlyJpy: number | null;
+  description: string | null;
+  isActive: boolean;
+};
+
+export type EntitlementSummary = {
+  id: string;
+  scope: string;
+  accessLevel: string;
+  startsAt: string;
+  expiresAt: string | null;
+  plan: { id: string; slug: string; name: string } | null;
+  lab: { id: string; slug: string; nameJa: string } | null;
+  certification: { id: string; slug: string; displayName: string } | null;
+  course: { id: string; slug: string; title: string } | null;
+  unit: { id: string; slug: string; title: string } | null;
+};
+
+export type MyEntitlements = {
+  user: { id: string; email: string; accessLevel: string };
+  subscriptions: Array<{
+    id: string;
+    status: string;
+    plan: { id: string; slug: string; name: string; accessLevel: string };
+    currentPeriodEnd: string | null;
+    cancelAtPeriodEnd: boolean;
   }>;
+  entitlements: EntitlementSummary[];
+};
+
+export type BookmarkResult = {
+  id: string;
+  question: {
+    id: string;
+    slug: string;
+    title: string | null;
+    unit: { id: string; slug: string; title: string };
+  };
+  createdAt: string;
 };
 
 export const fallbackCourse: CourseDetail = {
@@ -120,19 +210,36 @@ export const fallbackPracticeSet: PracticeSetDetail = {
   ]
 };
 
-async function readApi<T>(path: string): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, { cache: 'no-store' });
+function buildHeaders(userEmail: string | undefined, hasBody = false): Record<string, string> {
+  const headers: Record<string, string> = {};
+  if (hasBody) headers['Content-Type'] = 'application/json';
+
+  const normalizedEmail = userEmail?.trim().toLowerCase();
+  if (normalizedEmail) headers['x-user-email'] = normalizedEmail;
+
+  return headers;
+}
+
+async function readApi<T>(path: string, userEmail?: string): Promise<T> {
+  const response = await fetch(`${API_BASE_URL}${path}`, { cache: 'no-store', headers: buildHeaders(userEmail) });
   if (!response.ok) throw new Error(`API request failed: ${response.status}`);
   const payload = (await response.json()) as ApiEnvelope<T>;
   return payload.data;
 }
 
-async function writeApi<T>(path: string, body: unknown): Promise<T> {
+async function writeApi<T>(path: string, body: unknown, userEmail?: string): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: buildHeaders(userEmail, true),
     body: JSON.stringify(body)
   });
+  if (!response.ok) throw new Error(`API request failed: ${response.status}`);
+  const payload = (await response.json()) as ApiEnvelope<T>;
+  return payload.data;
+}
+
+async function deleteApi<T>(path: string, userEmail?: string): Promise<T> {
+  const response = await fetch(`${API_BASE_URL}${path}`, { method: 'DELETE', headers: buildHeaders(userEmail) });
   if (!response.ok) throw new Error(`API request failed: ${response.status}`);
   const payload = (await response.json()) as ApiEnvelope<T>;
   return payload.data;
@@ -156,4 +263,40 @@ export async function getPracticeSetDetail(practiceSetId: string): Promise<Pract
 
 export async function gradePracticeSet(practiceSetId: string, answers: Array<{ questionId: string; choiceId: string }>): Promise<GradePracticeSetResult> {
   return writeApi<GradePracticeSetResult>(`/practice-sets/${practiceSetId}/grade`, { answers });
+}
+
+export async function startAttempt(practiceSetId: string, userEmail: string): Promise<AttemptSummary> {
+  return writeApi<AttemptSummary>('/attempts', { practiceSetId }, userEmail);
+}
+
+export async function saveAttemptAnswers(attemptId: string, answers: Array<{ questionId: string; choiceId: string }>, userEmail: string): Promise<{ attemptId: string }> {
+  return writeApi<{ attemptId: string }>(`/attempts/${attemptId}/answers`, { answers }, userEmail);
+}
+
+export async function submitAttempt(attemptId: string, userEmail: string): Promise<AttemptResult> {
+  return writeApi<AttemptResult>(`/attempts/${attemptId}/submit`, {}, userEmail);
+}
+
+export async function getMyProgress(userEmail: string): Promise<ProgressSnapshot[]> {
+  return readApi<ProgressSnapshot[]>('/me/progress', userEmail);
+}
+
+export async function getMyReviewItems(userEmail: string): Promise<ReviewItem[]> {
+  return readApi<ReviewItem[]>('/me/review-items', userEmail);
+}
+
+export async function addBookmark(questionId: string, userEmail: string): Promise<BookmarkResult> {
+  return writeApi<BookmarkResult>('/me/bookmarks', { questionId }, userEmail);
+}
+
+export async function removeBookmark(bookmarkId: string, userEmail: string): Promise<{ id: string; deleted: boolean }> {
+  return deleteApi<{ id: string; deleted: boolean }>(`/me/bookmarks/${bookmarkId}`, userEmail);
+}
+
+export async function getPlans(): Promise<PlanSummary[]> {
+  return readApi<PlanSummary[]>('/plans');
+}
+
+export async function getMyEntitlements(userEmail: string): Promise<MyEntitlements> {
+  return readApi<MyEntitlements>('/me/entitlements', userEmail);
 }
