@@ -116,6 +116,8 @@ button { font: inherit; }
 .list-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: var(--color-surface-soft); }
 .list-row strong { display: block; margin-bottom: 4px; }
 .list-row p { font-size: 14px; }
+.review-list-row { align-items: flex-start; }
+.review-action-row { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
 
 @media (max-width: 760px) {
   .page-shell { width: min(100% - 24px, 1120px); padding-top: 20px; }
@@ -127,6 +129,7 @@ button { font: inherit; }
   .dashboard-toolbar,
   .question-heading-row,
   .list-row { display: grid; }
+  .review-action-row { justify-content: flex-start; }
   .choice-item,
   .choice-button { padding: 12px; }
 }
