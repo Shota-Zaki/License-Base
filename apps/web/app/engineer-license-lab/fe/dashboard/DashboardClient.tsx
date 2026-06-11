@@ -6,7 +6,6 @@ import {
   getMyProgress,
   getMyReviewItems,
   getPlans,
-  removeBookmark,
   type MyEntitlements,
   type PlanSummary,
   type ProgressSnapshot,
@@ -23,7 +22,6 @@ export function DashboardClient() {
   const [reviewItems, setReviewItems] = useState<ReviewItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [noticeMessage, setNoticeMessage] = useState<string | null>(null);
 
   const totalAttemptedCount = useMemo(() => progress.reduce((total, item) => total + item.attemptedCount, 0), [progress]);
   const totalCorrectCount = useMemo(() => progress.reduce((total, item) => total + item.correctCount, 0), [progress]);
@@ -38,7 +36,6 @@ export function DashboardClient() {
 
     setIsLoading(true);
     setErrorMessage(null);
-    setNoticeMessage(null);
 
     try {
       const [planResult, entitlementResult, progressResult, reviewItemResult] = await Promise.all([
@@ -56,20 +53,6 @@ export function DashboardClient() {
       setErrorMessage('ダッシュボードAPIに接続できませんでした。API起動後に再読み込みしてください。');
     } finally {
       setIsLoading(false);
-    }
-  }
-
-  async function handleRemoveReviewItem(bookmarkId: string) {
-    const normalizedEmail = userEmail.trim().toLowerCase();
-    setErrorMessage(null);
-    setNoticeMessage(null);
-
-    try {
-      await removeBookmark(bookmarkId, normalizedEmail);
-      setReviewItems((current) => current.filter((item) => item.id !== bookmarkId));
-      setNoticeMessage('見直しから削除しました。');
-    } catch {
-      setErrorMessage('見直し削除APIに接続できませんでした。');
     }
   }
 
@@ -102,7 +85,6 @@ export function DashboardClient() {
         </button>
       </form>
 
-      {noticeMessage ? <p className="notice-text">{noticeMessage}</p> : null}
       {errorMessage ? <p className="error-text">{errorMessage}</p> : null}
 
       <section className="metric-grid" aria-label="進捗サマリー">
@@ -165,9 +147,7 @@ export function DashboardClient() {
                     <strong>{item.question.title ?? item.question.slug}</strong>
                     <p>{item.question.unit.title} / 難易度 {item.question.difficulty}</p>
                   </div>
-                  <button className="button small-button" type="button" onClick={() => void handleRemoveReviewItem(item.id)}>
-                    削除
-                  </button>
+                  <span className="badge muted">{item.reason === 'bookmark' ? '手動追加' : '復習対象'}</span>
                 </div>
               ))}
             </div>
