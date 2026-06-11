@@ -46,33 +46,67 @@ export class MeController {
   @Get('review-items')
   async getReviewItems(@Headers('x-user-email') emailHeader: string | string[] | undefined) {
     const user = await requireUserByEmail(emailHeader);
-    const reviewItems = await prisma.reviewItem.findMany({
-      where: { userId: user.id },
-      orderBy: [{ dueAt: 'asc' }, { updatedAt: 'desc' }],
-      include: {
-        question: {
-          include: {
-            unit: true
+    const [reviewItems, bookmarks] = await Promise.all([
+      prisma.reviewItem.findMany({
+        where: { userId: user.id },
+        orderBy: [{ dueAt: 'asc' }, { updatedAt: 'desc' }],
+        include: {
+          question: {
+            include: {
+              unit: true
+            }
           }
         }
-      }
-    });
+      }),
+      prisma.bookmark.findMany({
+        where: { userId: user.id },
+        orderBy: { createdAt: 'desc' },
+        include: {
+          question: {
+            include: {
+              unit: true
+            }
+          }
+        }
+      })
+    ]);
+
+    const reviewRows = reviewItems.map((item) => ({
+      id: item.id,
+      sourceType: 'review_item',
+      bookmarkId: null,
+      reason: item.reason,
+      dueAt: item.dueAt,
+      question: {
+        id: item.question.id,
+        slug: item.question.slug,
+        title: item.question.title,
+        difficulty: item.question.difficulty,
+        unit: { id: item.question.unit.id, slug: item.question.unit.slug, title: item.question.unit.title }
+      },
+      createdAt: item.createdAt,
+      updatedAt: item.updatedAt
+    }));
+
+    const bookmarkRows = bookmarks.map((item) => ({
+      id: `bookmark-${item.id}`,
+      sourceType: 'bookmark',
+      bookmarkId: item.id,
+      reason: 'bookmark',
+      dueAt: null,
+      question: {
+        id: item.question.id,
+        slug: item.question.slug,
+        title: item.question.title,
+        difficulty: item.question.difficulty,
+        unit: { id: item.question.unit.id, slug: item.question.unit.slug, title: item.question.unit.title }
+      },
+      createdAt: item.createdAt,
+      updatedAt: item.createdAt
+    }));
 
     return {
-      data: reviewItems.map((item) => ({
-        id: item.id,
-        reason: item.reason,
-        dueAt: item.dueAt,
-        question: {
-          id: item.question.id,
-          slug: item.question.slug,
-          title: item.question.title,
-          difficulty: item.question.difficulty,
-          unit: { id: item.question.unit.id, slug: item.question.unit.slug, title: item.question.unit.title }
-        },
-        createdAt: item.createdAt,
-        updatedAt: item.updatedAt
-      }))
+      data: [...reviewRows, ...bookmarkRows].sort((left, right) => right.updatedAt.getTime() - left.updatedAt.getTime())
     };
   }
 
