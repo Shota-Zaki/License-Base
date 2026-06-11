@@ -7,18 +7,23 @@ SMOKE_USER_EMAIL="${SMOKE_USER_EMAIL:-mvp-smoke@example.test}"
 TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/license-base-smoke.XXXXXX")"
 PRACTICE_SET_RESPONSE="${TMP_DIR}/practice-set.json"
 GRADE_REQUEST="${TMP_DIR}/grade-request.json"
+WRONG_ANSWERS_REQUEST="${TMP_DIR}/wrong-answers-request.json"
 BOOKMARK_REQUEST="${TMP_DIR}/bookmark-request.json"
 GRADE_RESPONSE="${TMP_DIR}/grade-response.json"
 EMPTY_REQUEST="${TMP_DIR}/empty-request.json"
+SNOOZE_REQUEST="${TMP_DIR}/snooze-request.json"
 ATTEMPT_REQUEST="${TMP_DIR}/attempt-request.json"
 ATTEMPT_RESPONSE="${TMP_DIR}/attempt.json"
 ATTEMPT_ID_FILE="${TMP_DIR}/attempt-id.txt"
+REVIEW_ITEM_ID_FILE="${TMP_DIR}/review-item-id.txt"
 SAVE_ANSWERS_RESPONSE="${TMP_DIR}/save-answers.json"
 SUBMIT_RESPONSE="${TMP_DIR}/submit.json"
 ATTEMPT_RESULT_RESPONSE="${TMP_DIR}/attempt-result.json"
 PROGRESS_RESPONSE="${TMP_DIR}/progress.json"
 BOOKMARK_RESPONSE="${TMP_DIR}/bookmark.json"
 REVIEW_RESPONSE="${TMP_DIR}/review-items.json"
+SNOOZE_RESPONSE="${TMP_DIR}/snooze-review-item.json"
+ARCHIVE_RESPONSE="${TMP_DIR}/archive-review-item.json"
 SMOKE_RESPONSE="${TMP_DIR}/response.txt"
 
 cleanup() {
@@ -91,6 +96,7 @@ require_command curl
 require_command node
 
 printf '{}\n' > "${EMPTY_REQUEST}"
+printf '{"days":3}\n' > "${SNOOZE_REQUEST}"
 printf '{"practiceSetId":"fe-free-sample-set"}\n' > "${ATTEMPT_REQUEST}"
 
 echo "API_BASE_URL=${API_BASE_URL}"
@@ -154,12 +160,12 @@ NODE
 
 request 'FE practice grading' POST "${API_BASE_URL}/practice-sets/fe-free-sample-set/grade" "${GRADE_REQUEST}" "${GRADE_RESPONSE}"
 
-node --input-type=module - "${GRADE_RESPONSE}" <<'NODE'
-import { readFileSync } from 'node:fs';
+node --input-type=module - "${PRACTICE_SET_RESPONSE}" "${GRADE_RESPONSE}" "${WRONG_ANSWERS_REQUEST}" <<'NODE'
+import { readFileSync, writeFileSync } from 'node:fs';
 
-const [, , inputPath] = process.argv;
-const payload = JSON.parse(readFileSync(inputPath, 'utf8'));
-const result = payload?.data;
+const [, , practiceSetPath, gradePath, wrongAnswersPath] = process.argv;
+const practiceSet = JSON.parse(readFileSync(practiceSetPath, 'utf8'))?.data;
+const result = JSON.parse(readFileSync(gradePath, 'utf8'))?.data;
 
 if (!result) {
   throw new Error('Grade response does not include data.');
@@ -195,6 +201,19 @@ for (const row of result.results) {
     throw new Error(`Grade result for ${row.questionId} does not include explanation.`);
   }
 }
+
+const questionById = new Map((practiceSet?.questions ?? []).map((question) => [question.id, question]));
+const wrongAnswers = result.results.map((row) => {
+  const question = questionById.get(row.questionId);
+  const wrongChoice = question?.choices?.find((choice) => choice.id !== row.correctChoice.id);
+  if (!wrongChoice) {
+    throw new Error(`No wrong choice candidate found for ${row.questionId}.`);
+  }
+
+  return { questionId: row.questionId, choiceId: wrongChoice.id };
+});
+
+writeFileSync(wrongAnswersPath, JSON.stringify({ answers: wrongAnswers }, null, 2));
 NODE
 
 auth_request 'Start attempt' POST "${API_BASE_URL}/attempts" "${ATTEMPT_REQUEST}" "${ATTEMPT_RESPONSE}"
@@ -214,17 +233,17 @@ writeFileSync(outputPath, attempt.id);
 NODE
 
 ATTEMPT_ID="$(cat "${ATTEMPT_ID_FILE}")"
-auth_request 'Save attempt answers' POST "${API_BASE_URL}/attempts/${ATTEMPT_ID}/answers" "${GRADE_REQUEST}" "${SAVE_ANSWERS_RESPONSE}"
+auth_request 'Save attempt answers' POST "${API_BASE_URL}/attempts/${ATTEMPT_ID}/answers" "${WRONG_ANSWERS_REQUEST}" "${SAVE_ANSWERS_RESPONSE}"
 auth_request 'Submit attempt' POST "${API_BASE_URL}/attempts/${ATTEMPT_ID}/submit" "${EMPTY_REQUEST}" "${SUBMIT_RESPONSE}"
 auth_request 'Attempt result' GET "${API_BASE_URL}/attempts/${ATTEMPT_ID}/result" '' "${ATTEMPT_RESULT_RESPONSE}"
 auth_request 'My progress' GET "${API_BASE_URL}/me/progress" '' "${PROGRESS_RESPONSE}"
 auth_request 'Add bookmark' POST "${API_BASE_URL}/me/bookmarks" "${BOOKMARK_REQUEST}" "${BOOKMARK_RESPONSE}"
 auth_request 'My review items' GET "${API_BASE_URL}/me/review-items" '' "${REVIEW_RESPONSE}"
 
-node --input-type=module - "${SUBMIT_RESPONSE}" "${ATTEMPT_RESULT_RESPONSE}" "${PROGRESS_RESPONSE}" "${REVIEW_RESPONSE}" <<'NODE'
-import { readFileSync } from 'node:fs';
+node --input-type=module - "${SUBMIT_RESPONSE}" "${ATTEMPT_RESULT_RESPONSE}" "${PROGRESS_RESPONSE}" "${REVIEW_RESPONSE}" "${REVIEW_ITEM_ID_FILE}" <<'NODE'
+import { readFileSync, writeFileSync } from 'node:fs';
 
-const [, , submitPath, resultPath, progressPath, reviewPath] = process.argv;
+const [, , submitPath, resultPath, progressPath, reviewPath, reviewItemIdPath] = process.argv;
 const submit = JSON.parse(readFileSync(submitPath, 'utf8'))?.data;
 const result = JSON.parse(readFileSync(resultPath, 'utf8'))?.data;
 const progress = JSON.parse(readFileSync(progressPath, 'utf8'))?.data;
@@ -244,6 +263,33 @@ if (!Array.isArray(progress) || progress.length === 0) {
 
 if (!Array.isArray(reviewItems) || reviewItems.length === 0) {
   throw new Error('Review response does not include any item after manual bookmark.');
+}
+
+const reviewItem = reviewItems.find((item) => item.sourceType === 'review_item');
+if (!reviewItem?.id) {
+  throw new Error('Review response does not include a review item created from wrong answers.');
+}
+
+writeFileSync(reviewItemIdPath, reviewItem.id);
+NODE
+
+REVIEW_ITEM_ID="$(cat "${REVIEW_ITEM_ID_FILE}")"
+auth_request 'Snooze review item' POST "${API_BASE_URL}/me/review-items/${REVIEW_ITEM_ID}/snooze" "${SNOOZE_REQUEST}" "${SNOOZE_RESPONSE}"
+auth_request 'Archive review item' POST "${API_BASE_URL}/me/review-items/${REVIEW_ITEM_ID}/archive" "${EMPTY_REQUEST}" "${ARCHIVE_RESPONSE}"
+
+node --input-type=module - "${SNOOZE_RESPONSE}" "${ARCHIVE_RESPONSE}" <<'NODE'
+import { readFileSync } from 'node:fs';
+
+const [, , snoozePath, archivePath] = process.argv;
+const snooze = JSON.parse(readFileSync(snoozePath, 'utf8'))?.data;
+const archive = JSON.parse(readFileSync(archivePath, 'utf8'))?.data;
+
+if (!snooze?.id || !snooze.dueAt) {
+  throw new Error('Snooze response does not include a dueAt review item.');
+}
+
+if (!archive?.id || archive.archived !== true) {
+  throw new Error('Archive response does not include archived=true.');
 }
 NODE
 
