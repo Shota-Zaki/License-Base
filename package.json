@@ -1,0 +1,18 @@
+{
+  "name": "license-base",
+  "private": true,
+  "packageManager": "pnpm@latest",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "db:generate": "pnpm --filter @license-base/db db:generate",
+    "db:migrate": "pnpm --filter @license-base/db db:migrate",
+    "db:seed": "pnpm --filter @license-base/db db:seed"
+  },
+  "devDependencies": {
+    "turbo": "latest",
+    "typescript": "latest"
+  }
+}
