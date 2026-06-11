@@ -4,6 +4,8 @@
   "packageManager": "pnpm@latest",
   "scripts": {
     "dev": "turbo dev",
+    "dev:web": "pnpm --filter @license-base/web dev",
+    "dev:api": "pnpm --filter @license-base/api dev",
     "build": "turbo build",
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
