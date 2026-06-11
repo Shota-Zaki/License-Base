@@ -2,7 +2,7 @@
 
 ## 現在状態
 
-License Base / Engineer-License-Lab / FE Practice Lab のWeb MVPを継続中。`feat/mvp-foundation-v2` / PR #1 を起点に、PR mergeable状態を再確認し、実行検証を再試行した。実行環境制約は継続しているため、未実行チェックは成功扱いせず、回答選択UIを `POST /v1/practice-sets/:id/grade` へ接続した。
+License Base / Engineer-License-Lab / FE Practice Lab のWeb MVPを継続中。`feat/mvp-foundation-v2` / PR #1 を起点に、PR mergeable状態を再確認し、実行検証を再試行した。実行環境制約は継続しているため、未実行チェックは成功扱いせず、ネットワークとDockerが使える環境向けの検証手順とsmokeスクリプトを整備した。
 
 ## 確定方針
 
@@ -21,18 +21,16 @@ License Base / Engineer-License-Lab / FE Practice Lab のWeb MVPを継続中。`
 - `CHATGPT_READ_FIRST.md` と `docs/AI_WORK_STATE.md` を確認
 - PR #1 の `mergeable: true` を確認
 - 実行環境を再確認し、`github.com` / `registry.npmjs.org` のDNS不可、pnpm未導入、Docker未導入を再確認
-- Web API helperに `gradePracticeSet()` と採点結果型を追加
-- `PracticeSetClient` を追加し、回答選択、提出、採点結果、解説表示、再挑戦を接続
-- 演習ページをサーバー取得 + クライアント回答UI構成へ変更
-- 採点状態用CSSを追加
+- `docs/LOCAL_VERIFICATION.md` を追加
+- `tools/license_base_smoke.sh` を追加
+- `README.md` のセットアップ手順を `env.example` と現行script構成に合わせて修正
 - `docs/AI_WORK_STATE.md` を更新
 
 ## 変更ファイル
 
-- `apps/web/lib/api.ts`
-- `apps/web/app/engineer-license-lab/fe/practice/[practiceSetId]/PracticeSetClient.tsx`
-- `apps/web/app/engineer-license-lab/fe/practice/[practiceSetId]/page.tsx`
-- `apps/web/app/globals.css`
+- `README.md`
+- `docs/LOCAL_VERIFICATION.md`
+- `tools/license_base_smoke.sh`
 - `docs/AI_WORK_STATE.md`
 
 ## 未完了
@@ -97,19 +95,20 @@ License Base / Engineer-License-Lab / FE Practice Lab のWeb MVPを継続中。`
 5. seed-data読込とPrisma schema/API型の不整合を修正する
 6. APIを起動し、主要エンドポイントを実HTTP確認する
 7. Webを起動し、PC幅・スマホ幅で確認する
-8. FE Practice Labトップ、演習画面、回答選択、採点結果表示をブラウザ確認する
-9. FEテキスト限定問題のvisualHtml非表示取込ルートを設計する
+8. `bash tools/license_base_smoke.sh` を実行する
+9. FE Practice Labトップ、演習画面、回答選択、採点結果表示をブラウザ確認する
+10. FEテキスト限定問題のvisualHtml非表示取込ルートを設計する
 
 ## 推定完成度
 
-- 企画・要件: 48%
+- 企画・要件: 49%
 - アーキテクチャ: 43%
 - DB設計: 42%
 - UI方針: 37%
 - 実装: 34%
 - 検証: 0%
-- 引継ぎ整備: 88%
+- 引継ぎ整備: 90%
 
 ## 次回用短縮プロンプト
 
-Shota-Zaki/License-Base リポジトリの `CHATGPT_READ_FIRST.md` と `docs/AI_WORK_STATE.md` を最初に確認してください。`feat/mvp-foundation-v2` / PR #1 を起点に、License Base / Engineer-License-Lab / FE Practice Lab のWeb MVPを進めてください。前回、回答選択UIを `POST /v1/practice-sets/:id/grade` へ接続し、選択、提出、採点結果、解説表示、再挑戦まで実装済みです。ただし、この実行環境では `github.com` / `registry.npmjs.org` の名前解決に失敗し、pnpm未導入・Docker未導入のため、pnpm install、lockfile生成、DB起動、Prisma generate / migrate / seed、API/Web起動、実HTTP smoke、PC幅・スマホ幅確認は未実行です。ネットワークとDockerが使える環境で実行検証を優先してください。未実行チェックは成功扱いせず、最後に差分ログ、保留、進捗サマリー、残作業一覧、推定完成度、次回用短縮プロンプトを出してください。
+Shota-Zaki/License-Base リポジトリの `CHATGPT_READ_FIRST.md` と `docs/AI_WORK_STATE.md` を最初に確認してください。`feat/mvp-foundation-v2` / PR #1 を起点に、License Base / Engineer-License-Lab / FE Practice Lab のWeb MVPを進めてください。前回、`docs/LOCAL_VERIFICATION.md` と `tools/license_base_smoke.sh` を追加し、READMEのセットアップ手順を現行構成へ修正済みです。回答選択UIも `POST /v1/practice-sets/:id/grade` へ接続済みです。ただし、この実行環境では `github.com` / `registry.npmjs.org` の名前解決に失敗し、pnpm未導入・Docker未導入のため、pnpm install、lockfile生成、DB起動、Prisma generate / migrate / seed、API/Web起動、実HTTP smoke、PC幅・スマホ幅確認は未実行です。ネットワークとDockerが使える環境で実行検証を優先してください。未実行チェックは成功扱いせず、最後に差分ログ、保留、進捗サマリー、残作業一覧、推定完成度、次回用短縮プロンプトを出してください。
