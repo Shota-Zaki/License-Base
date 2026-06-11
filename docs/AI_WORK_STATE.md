@@ -2,7 +2,7 @@
 
 ## 現在状態
 
-License Base / Engineer-License-Lab / FE Practice Lab のWeb MVPを継続中。`feat/mvp-foundation-v2` / PR #1 を起点に、添付されたEEL runtime import bundleを確認し、FE公式確認済み問題の一部をMVP seedへ接続した。
+License Base / Engineer-License-Lab / FE Practice Lab のWeb MVPを継続中。`feat/mvp-foundation-v2` / PR #1 を起点に、PR mergeable状態を再確認し、添付EEL runtime import bundle由来のMVP seed候補を図表なしでも表示できる公式確認済み5問へ差し替えた。
 
 ## 確定方針
 
@@ -18,19 +18,15 @@ License Base / Engineer-License-Lab / FE Practice Lab のWeb MVPを継続中。`
 
 ## 今回作成・更新したもの
 
-- 添付ZIPの `runtime_import/` を確認
-- FE公式確認済み884問、FEテキスト限定1032問、FE正答なし286問、FE AI生成200問の分類を確認
-- `packages/db/prisma/seed-data/fe-mvp-questions.json` を追加
-- `packages/db/prisma/seed.ts` をseed-data読込方式へ変更
-- FE無料サンプル演習を、添付データ由来の公式確認済み5問で構成するよう変更
-- `docs/DATA_IMPORT.md` を追加
+- `CHATGPT_READ_FIRST.md` と `docs/AI_WORK_STATE.md` を確認
+- PR #1 の `mergeable: true` を確認
+- `packages/db/prisma/seed-data/fe-mvp-questions.json` を図表なしでも表示できる公式確認済み5問へ差し替え
+- ローカル実行環境を再確認
 - `docs/AI_WORK_STATE.md` を更新
 
 ## 変更ファイル
 
 - `packages/db/prisma/seed-data/fe-mvp-questions.json`
-- `packages/db/prisma/seed.ts`
-- `docs/DATA_IMPORT.md`
 - `docs/AI_WORK_STATE.md`
 
 ## 未完了
@@ -105,10 +101,10 @@ License Base / Engineer-License-Lab / FE Practice Lab のWeb MVPを継続中。`
 - アーキテクチャ: 42%
 - DB設計: 42%
 - UI方針: 35%
-- 実装: 27%
+- 実装: 28%
 - 検証: 0%
-- 引継ぎ整備: 85%
+- 引継ぎ整備: 86%
 
 ## 次回用短縮プロンプト
 
-Shota-Zaki/License-Base リポジトリの `CHATGPT_READ_FIRST.md` と `docs/AI_WORK_STATE.md` を最初に確認してください。`feat/mvp-foundation-v2` / PR #1 を起点に、License Base / Engineer-License-Lab / FE Practice Lab のWeb MVPを進めてください。前回、添付EEL runtime import bundleを確認し、FE公式確認済み5問を `packages/db/prisma/seed-data/fe-mvp-questions.json` に追加、`packages/db/prisma/seed.ts` をseed-data読込方式へ変更、`docs/DATA_IMPORT.md` を追加済みです。ネットワーク利用可能な環境で pnpm install、lockfile生成、DB起動、Prisma generate / migrate / seed、API/Web起動、実HTTP smoke、PC幅・スマホ幅確認を優先してください。未実行チェックは成功扱いせず、最後に差分ログ、保留、進捗サマリー、残作業一覧、推定完成度、次回用短縮プロンプトを出してください。
+Shota-Zaki/License-Base リポジトリの `CHATGPT_READ_FIRST.md` と `docs/AI_WORK_STATE.md` を最初に確認してください。`feat/mvp-foundation-v2` / PR #1 を起点に、License Base / Engineer-License-Lab / FE Practice Lab のWeb MVPを進めてください。前回、PR #1 の `mergeable: true` を確認し、`packages/db/prisma/seed-data/fe-mvp-questions.json` を図表なしでも表示できる公式確認済み5問へ差し替え済みです。ただし、この実行環境では `github.com` / `registry.npmjs.org` の名前解決に失敗し、pnpm未導入・Docker未導入のため、pnpm install、lockfile生成、DB起動、Prisma generate / migrate / seed、API/Web起動、実HTTP smoke、PC幅・スマホ幅確認は未実行です。ネットワークとDockerが使える環境で実行検証を優先してください。未実行チェックは成功扱いせず、最後に差分ログ、保留、進捗サマリー、残作業一覧、推定完成度、次回用短縮プロンプトを出してください。
