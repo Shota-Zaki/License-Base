@@ -6,6 +6,44 @@ type BookmarkBody = {
   questionId?: string;
 };
 
+type SnoozeReviewItemBody = {
+  days?: number;
+};
+
+const REVIEW_ITEM_ARCHIVED_REASON = 'archived';
+
+function serializeReviewItem(item: {
+  id: string;
+  reason: string | null;
+  dueAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+  question: {
+    id: string;
+    slug: string;
+    title: string | null;
+    difficulty: number;
+    unit: { id: string; slug: string; title: string };
+  };
+}) {
+  return {
+    id: item.id,
+    sourceType: 'review_item',
+    bookmarkId: null,
+    reason: item.reason,
+    dueAt: item.dueAt,
+    question: {
+      id: item.question.id,
+      slug: item.question.slug,
+      title: item.question.title,
+      difficulty: item.question.difficulty,
+      unit: { id: item.question.unit.id, slug: item.question.unit.slug, title: item.question.unit.title }
+    },
+    createdAt: item.createdAt,
+    updatedAt: item.updatedAt
+  };
+}
+
 @Controller('me')
 export class MeController {
   @Get('progress')
@@ -48,7 +86,7 @@ export class MeController {
     const user = await requireUserByEmail(emailHeader);
     const [reviewItems, bookmarks] = await Promise.all([
       prisma.reviewItem.findMany({
-        where: { userId: user.id },
+        where: { userId: user.id, OR: [{ reason: null }, { reason: { not: REVIEW_ITEM_ARCHIVED_REASON } }] },
         orderBy: [{ dueAt: 'asc' }, { updatedAt: 'desc' }],
         include: {
           question: {
@@ -71,22 +109,7 @@ export class MeController {
       })
     ]);
 
-    const reviewRows = reviewItems.map((item) => ({
-      id: item.id,
-      sourceType: 'review_item',
-      bookmarkId: null,
-      reason: item.reason,
-      dueAt: item.dueAt,
-      question: {
-        id: item.question.id,
-        slug: item.question.slug,
-        title: item.question.title,
-        difficulty: item.question.difficulty,
-        unit: { id: item.question.unit.id, slug: item.question.unit.slug, title: item.question.unit.title }
-      },
-      createdAt: item.createdAt,
-      updatedAt: item.updatedAt
-    }));
+    const reviewRows = reviewItems.map(serializeReviewItem);
 
     const bookmarkRows = bookmarks.map((item) => ({
       id: `bookmark-${item.id}`,
@@ -108,6 +131,52 @@ export class MeController {
     return {
       data: [...reviewRows, ...bookmarkRows].sort((left, right) => right.updatedAt.getTime() - left.updatedAt.getTime())
     };
+  }
+
+  @Post('review-items/:reviewItemId/archive')
+  async archiveReviewItem(@Headers('x-user-email') emailHeader: string | string[] | undefined, @Param('reviewItemId') reviewItemId: string) {
+    const user = await requireUserByEmail(emailHeader);
+    const current = await prisma.reviewItem.findFirst({ where: { id: reviewItemId, userId: user.id } });
+
+    if (!current) {
+      throw new NotFoundException({ error: { code: 'REVIEW_ITEM_NOT_FOUND', message: '指定された復習対象が見つかりません。' } });
+    }
+
+    await prisma.reviewItem.update({ where: { id: current.id }, data: { reason: REVIEW_ITEM_ARCHIVED_REASON, dueAt: null } });
+    return { data: { id: current.id, archived: true } };
+  }
+
+  @Post('review-items/:reviewItemId/snooze')
+  async snoozeReviewItem(
+    @Headers('x-user-email') emailHeader: string | string[] | undefined,
+    @Param('reviewItemId') reviewItemId: string,
+    @Body() body: SnoozeReviewItemBody
+  ) {
+    const days = body.days ?? 3;
+    if (!Number.isInteger(days) || days < 1 || days > 30) {
+      throw new BadRequestException({ error: { code: 'INVALID_SNOOZE_DAYS', message: 'スヌーズ日数は1〜30日の整数で指定してください。' } });
+    }
+
+    const user = await requireUserByEmail(emailHeader);
+    const current = await prisma.reviewItem.findFirst({ where: { id: reviewItemId, userId: user.id } });
+    if (!current) {
+      throw new NotFoundException({ error: { code: 'REVIEW_ITEM_NOT_FOUND', message: '指定された復習対象が見つかりません。' } });
+    }
+
+    const dueAt = new Date();
+    dueAt.setDate(dueAt.getDate() + days);
+
+    const reviewItem = await prisma.reviewItem.update({
+      where: { id: current.id },
+      data: { dueAt },
+      include: {
+        question: {
+          include: { unit: true }
+        }
+      }
+    });
+
+    return { data: serializeReviewItem(reviewItem) };
   }
 
   @Post('bookmarks')
