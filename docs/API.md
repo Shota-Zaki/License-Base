@@ -15,6 +15,7 @@ GET /v1/questions/:questionId
 ```txt
 GET  /v1/practice-sets
 GET  /v1/practice-sets/:id
+POST /v1/practice-sets/:id/grade
 GET  /v1/questions/:id
 POST /v1/attempts
 POST /v1/attempts/:attemptId/answers
@@ -64,6 +65,13 @@ DB接続済み:
 - `GET /v1/questions/:questionId`
 - `GET /v1/practice-sets`
 - `GET /v1/practice-sets/:id`
+- `POST /v1/practice-sets/:id/grade`
+
+## 正答公開方針
+
+- `GET /v1/questions/:id` と `GET /v1/practice-sets/:id` は回答前表示用なので、選択肢の `isCorrect` と解説本文を返さない。
+- `POST /v1/practice-sets/:id/grade` は提出後表示用として、採点結果、正答、解説を返す。
+- ログイン後の進捗保存は今後 `attempts` 系APIへ接続する。
 
 未実装:
 
