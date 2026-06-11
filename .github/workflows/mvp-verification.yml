@@ -9,10 +9,44 @@ on:
 permissions:
   contents: read
 
+env:
+  PNPM_VERSION: "10.0.0"
+
 jobs:
-  verify:
+  static-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install pnpm
+        run: |
+          npm install -g pnpm@${PNPM_VERSION}
+          pnpm --version
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm db:generate
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Build
+        run: pnpm build
+
+  integration:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    needs: static-check
 
     services:
       postgres:
@@ -34,7 +68,6 @@ jobs:
       API_PORT: "4000"
       NEXT_PUBLIC_APP_URL: http://localhost:3000
       NEXT_PUBLIC_API_BASE_URL: http://localhost:4000/v1
-      PNPM_VERSION: "10.0.0"
 
     steps:
       - name: Checkout
@@ -61,12 +94,6 @@ jobs:
 
       - name: Seed database
         run: pnpm db:seed
-
-      - name: Typecheck
-        run: pnpm typecheck
-
-      - name: Build
-        run: pnpm build
 
       - name: Start API and Web
         run: |
