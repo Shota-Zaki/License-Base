@@ -49,8 +49,8 @@ async function main() {
     }
   });
 
-  let question = await prisma.question.findFirst({
-    where: { title: 'サンプル問題: 2進数' }
+  let question = await prisma.question.findUnique({
+    where: { slug: 'fe-binary-conversion-001' }
   });
 
   if (!question) {
@@ -58,7 +58,9 @@ async function main() {
       data: {
         certificationId: certification.id,
         unitId: unit.id,
+        slug: 'fe-binary-conversion-001',
         status: 'PUBLISHED',
+        accessLevel: 'FREE',
         title: 'サンプル問題: 2進数',
         body: '10進数の13を2進数で表したものとして、適切なものはどれか。',
         isFree: true,
@@ -94,6 +96,7 @@ async function main() {
       slug: 'fe-free-sample-set',
       title: 'FE無料サンプル演習',
       description: 'ゲストでも確認できる最小サンプルです。',
+      accessLevel: 'FREE',
       isFree: true,
       isPublished: true,
       questions: {
