@@ -14,7 +14,8 @@ export function PracticeSetClient({ practiceSet }: PracticeSetClientProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const resultByQuestionId = useMemo(() => {
-    return new Map(gradeResult?.results.map((result) => [result.questionId, result]) ?? []);
+    const entries = gradeResult?.results.map((result) => [result.questionId, result] as const) ?? [];
+    return new Map(entries);
   }, [gradeResult]);
 
   const answeredCount = Object.keys(selectedChoices).length;
@@ -38,6 +39,12 @@ export function PracticeSetClient({ practiceSet }: PracticeSetClientProps) {
     }
   }
 
+  function resetAnswers() {
+    setSelectedChoices({});
+    setGradeResult(null);
+    setErrorMessage(null);
+  }
+
   return (
     <>
       <section className="practice-submit-panel" aria-label="演習の提出">
@@ -46,9 +53,12 @@ export function PracticeSetClient({ practiceSet }: PracticeSetClientProps) {
           <h2>解答を選択して提出</h2>
           <p>{answeredCount} / {practiceSet.questions.length} 問に回答済み</p>
         </div>
-        <button className="button primary" type="button" disabled={!canSubmit} onClick={handleSubmit}>
-          {isSubmitting ? '採点中' : '解答を提出する'}
-        </button>
+        <div className="action-row">
+          {gradeResult ? <button className="button" type="button" onClick={resetAnswers}>もう一度解く</button> : null}
+          <button className="button primary" type="button" disabled={!canSubmit || Boolean(gradeResult)} onClick={handleSubmit}>
+            {isSubmitting ? '採点中' : '解答を提出する'}
+          </button>
+        </div>
       </section>
 
       {gradeResult ? (
