@@ -2,10 +2,13 @@
 
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import {
+  archiveReviewItem,
   getMyEntitlements,
   getMyProgress,
   getMyReviewItems,
   getPlans,
+  removeBookmark,
+  snoozeReviewItem,
   type MyEntitlements,
   type PlanSummary,
   type ProgressSnapshot,
@@ -14,6 +17,11 @@ import {
 
 const DEFAULT_MVP_USER_EMAIL = 'mvp-user@example.test';
 
+function formatDueAt(dueAt: string | null) {
+  if (!dueAt) return '期限なし';
+  return new Intl.DateTimeFormat('ja-JP', { month: 'numeric', day: 'numeric' }).format(new Date(dueAt));
+}
+
 export function DashboardClient() {
   const [userEmail, setUserEmail] = useState(DEFAULT_MVP_USER_EMAIL);
   const [plans, setPlans] = useState<PlanSummary[]>([]);
@@ -21,7 +29,9 @@ export function DashboardClient() {
   const [progress, setProgress] = useState<ProgressSnapshot[]>([]);
   const [reviewItems, setReviewItems] = useState<ReviewItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [pendingReviewItemId, setPendingReviewItemId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [noticeMessage, setNoticeMessage] = useState<string | null>(null);
 
   const totalAttemptedCount = useMemo(() => progress.reduce((total, item) => total + item.attemptedCount, 0), [progress]);
   const totalCorrectCount = useMemo(() => progress.reduce((total, item) => total + item.correctCount, 0), [progress]);
@@ -36,6 +46,7 @@ export function DashboardClient() {
 
     setIsLoading(true);
     setErrorMessage(null);
+    setNoticeMessage(null);
 
     try {
       const [planResult, entitlementResult, progressResult, reviewItemResult] = await Promise.all([
@@ -53,6 +64,57 @@ export function DashboardClient() {
       setErrorMessage('ダッシュボードAPIに接続できませんでした。API起動後に再読み込みしてください。');
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function handleArchiveReviewItem(reviewItemId: string) {
+    const normalizedEmail = userEmail.trim().toLowerCase();
+    setPendingReviewItemId(reviewItemId);
+    setErrorMessage(null);
+    setNoticeMessage(null);
+
+    try {
+      await archiveReviewItem(reviewItemId, normalizedEmail);
+      setReviewItems((current) => current.filter((item) => item.id !== reviewItemId));
+      setNoticeMessage('復習対象を完了にしました。');
+    } catch {
+      setErrorMessage('復習対象の完了APIに接続できませんでした。');
+    } finally {
+      setPendingReviewItemId(null);
+    }
+  }
+
+  async function handleSnoozeReviewItem(reviewItemId: string, days: number) {
+    const normalizedEmail = userEmail.trim().toLowerCase();
+    setPendingReviewItemId(reviewItemId);
+    setErrorMessage(null);
+    setNoticeMessage(null);
+
+    try {
+      const updatedItem = await snoozeReviewItem(reviewItemId, days, normalizedEmail);
+      setReviewItems((current) => current.map((item) => (item.id === reviewItemId ? updatedItem : item)));
+      setNoticeMessage(`復習対象を${days}日後に移動しました。`);
+    } catch {
+      setErrorMessage('復習対象のスヌーズAPIに接続できませんでした。');
+    } finally {
+      setPendingReviewItemId(null);
+    }
+  }
+
+  async function handleRemoveBookmark(bookmarkId: string) {
+    const normalizedEmail = userEmail.trim().toLowerCase();
+    setPendingReviewItemId(bookmarkId);
+    setErrorMessage(null);
+    setNoticeMessage(null);
+
+    try {
+      await removeBookmark(bookmarkId, normalizedEmail);
+      setReviewItems((current) => current.filter((item) => item.bookmarkId !== bookmarkId));
+      setNoticeMessage('手動追加した見直しを削除しました。');
+    } catch {
+      setErrorMessage('見直し削除APIに接続できませんでした。');
+    } finally {
+      setPendingReviewItemId(null);
     }
   }
 
@@ -85,6 +147,7 @@ export function DashboardClient() {
         </button>
       </form>
 
+      {noticeMessage ? <p className="notice-text">{noticeMessage}</p> : null}
       {errorMessage ? <p className="error-text">{errorMessage}</p> : null}
 
       <section className="metric-grid" aria-label="進捗サマリー">
@@ -141,15 +204,39 @@ export function DashboardClient() {
           </div>
           {reviewItems.length > 0 ? (
             <div className="stacked-list">
-              {reviewItems.map((item) => (
-                <div className="list-row" key={item.id}>
-                  <div>
-                    <strong>{item.question.title ?? item.question.slug}</strong>
-                    <p>{item.question.unit.title} / 難易度 {item.question.difficulty}</p>
+              {reviewItems.map((item) => {
+                const isBookmark = item.sourceType === 'bookmark';
+                const isPending = pendingReviewItemId === item.id || pendingReviewItemId === item.bookmarkId;
+
+                return (
+                  <div className="list-row review-list-row" key={item.id}>
+                    <div>
+                      <strong>{item.question.title ?? item.question.slug}</strong>
+                      <p>{item.question.unit.title} / 難易度 {item.question.difficulty} / {formatDueAt(item.dueAt)}</p>
+                    </div>
+                    <div className="review-action-row">
+                      <span className="badge muted">{isBookmark ? '手動追加' : '復習対象'}</span>
+                      {isBookmark && item.bookmarkId ? (
+                        <button className="button small-button" type="button" disabled={isPending} onClick={() => void handleRemoveBookmark(item.bookmarkId as string)}>
+                          削除
+                        </button>
+                      ) : (
+                        <>
+                          <button className="button small-button" type="button" disabled={isPending} onClick={() => void handleSnoozeReviewItem(item.id, 3)}>
+                            3日後
+                          </button>
+                          <button className="button small-button" type="button" disabled={isPending} onClick={() => void handleSnoozeReviewItem(item.id, 7)}>
+                            7日後
+                          </button>
+                          <button className="button small-button" type="button" disabled={isPending} onClick={() => void handleArchiveReviewItem(item.id)}>
+                            完了
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
-                  <span className="badge muted">{item.reason === 'bookmark' ? '手動追加' : '復習対象'}</span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <p>見直し対象はまだありません。不正解または手動追加した問題が表示されます。</p>
