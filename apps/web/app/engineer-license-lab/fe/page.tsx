@@ -13,6 +13,7 @@ export default async function FePracticeLabPage() {
         <p>{course.description}</p>
         <div className="action-row">
           <a className="button primary" href="/engineer-license-lab/fe/practice/fe-free-sample-set">サンプル演習を始める</a>
+          <a className="button" href="/engineer-license-lab/fe/dashboard">ダッシュボードを見る</a>
           <a className="button" href="#units">単元を見る</a>
         </div>
       </section>
@@ -54,8 +55,9 @@ export default async function FePracticeLabPage() {
             </div>
             <h2>{practiceSet.title}</h2>
             <p>{practiceSet.description}</p>
-            <div className="card-action-row">
-              <a className="button primary" href="/engineer-license-lab/fe/practice/fe-free-sample-set">演習を開く</a>
+            <div className="card-action-row action-row">
+              <a className="button primary" href={`/engineer-license-lab/fe/practice/${practiceSet.slug}`}>演習を開く</a>
+              <a className="button" href="/engineer-license-lab/fe/dashboard">進捗を見る</a>
             </div>
           </article>
         ))}
