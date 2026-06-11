@@ -7,6 +7,7 @@ SMOKE_USER_EMAIL="${SMOKE_USER_EMAIL:-mvp-smoke@example.test}"
 TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/license-base-smoke.XXXXXX")"
 PRACTICE_SET_RESPONSE="${TMP_DIR}/practice-set.json"
 GRADE_REQUEST="${TMP_DIR}/grade-request.json"
+BOOKMARK_REQUEST="${TMP_DIR}/bookmark-request.json"
 GRADE_RESPONSE="${TMP_DIR}/grade-response.json"
 EMPTY_REQUEST="${TMP_DIR}/empty-request.json"
 ATTEMPT_REQUEST="${TMP_DIR}/attempt-request.json"
@@ -16,6 +17,8 @@ SAVE_ANSWERS_RESPONSE="${TMP_DIR}/save-answers.json"
 SUBMIT_RESPONSE="${TMP_DIR}/submit.json"
 ATTEMPT_RESULT_RESPONSE="${TMP_DIR}/attempt-result.json"
 PROGRESS_RESPONSE="${TMP_DIR}/progress.json"
+BOOKMARK_RESPONSE="${TMP_DIR}/bookmark.json"
+REVIEW_RESPONSE="${TMP_DIR}/review-items.json"
 SMOKE_RESPONSE="${TMP_DIR}/response.txt"
 
 cleanup() {
@@ -100,10 +103,10 @@ request 'FE sample practice set' GET "${API_BASE_URL}/practice-sets/fe-free-samp
 request 'Plans' GET "${API_BASE_URL}/plans"
 auth_request 'My entitlements' GET "${API_BASE_URL}/me/entitlements"
 
-node --input-type=module - "${PRACTICE_SET_RESPONSE}" "${GRADE_REQUEST}" <<'NODE'
+node --input-type=module - "${PRACTICE_SET_RESPONSE}" "${GRADE_REQUEST}" "${BOOKMARK_REQUEST}" <<'NODE'
 import { readFileSync, writeFileSync } from 'node:fs';
 
-const [, , inputPath, outputPath] = process.argv;
+const [, , inputPath, gradeOutputPath, bookmarkOutputPath] = process.argv;
 const payload = JSON.parse(readFileSync(inputPath, 'utf8'));
 const practiceSet = payload?.data;
 const questions = practiceSet?.questions ?? [];
@@ -145,7 +148,8 @@ const answers = questions.map((question) => ({
   choiceId: question.choices[0].id
 }));
 
-writeFileSync(outputPath, JSON.stringify({ answers }, null, 2));
+writeFileSync(gradeOutputPath, JSON.stringify({ answers }, null, 2));
+writeFileSync(bookmarkOutputPath, JSON.stringify({ questionId: questions[0].id }, null, 2));
 NODE
 
 request 'FE practice grading' POST "${API_BASE_URL}/practice-sets/fe-free-sample-set/grade" "${GRADE_REQUEST}" "${GRADE_RESPONSE}"
@@ -214,15 +218,17 @@ auth_request 'Save attempt answers' POST "${API_BASE_URL}/attempts/${ATTEMPT_ID}
 auth_request 'Submit attempt' POST "${API_BASE_URL}/attempts/${ATTEMPT_ID}/submit" "${EMPTY_REQUEST}" "${SUBMIT_RESPONSE}"
 auth_request 'Attempt result' GET "${API_BASE_URL}/attempts/${ATTEMPT_ID}/result" '' "${ATTEMPT_RESULT_RESPONSE}"
 auth_request 'My progress' GET "${API_BASE_URL}/me/progress" '' "${PROGRESS_RESPONSE}"
-auth_request 'My review items' GET "${API_BASE_URL}/me/review-items"
+auth_request 'Add bookmark' POST "${API_BASE_URL}/me/bookmarks" "${BOOKMARK_REQUEST}" "${BOOKMARK_RESPONSE}"
+auth_request 'My review items' GET "${API_BASE_URL}/me/review-items" '' "${REVIEW_RESPONSE}"
 
-node --input-type=module - "${SUBMIT_RESPONSE}" "${ATTEMPT_RESULT_RESPONSE}" "${PROGRESS_RESPONSE}" <<'NODE'
+node --input-type=module - "${SUBMIT_RESPONSE}" "${ATTEMPT_RESULT_RESPONSE}" "${PROGRESS_RESPONSE}" "${REVIEW_RESPONSE}" <<'NODE'
 import { readFileSync } from 'node:fs';
 
-const [, , submitPath, resultPath, progressPath] = process.argv;
+const [, , submitPath, resultPath, progressPath, reviewPath] = process.argv;
 const submit = JSON.parse(readFileSync(submitPath, 'utf8'))?.data;
 const result = JSON.parse(readFileSync(resultPath, 'utf8'))?.data;
 const progress = JSON.parse(readFileSync(progressPath, 'utf8'))?.data;
+const reviewItems = JSON.parse(readFileSync(reviewPath, 'utf8'))?.data;
 
 if (!submit || submit.status !== 'SUBMITTED' || !Array.isArray(submit.results) || submit.results.length === 0) {
   throw new Error('Submit response does not include submitted results.');
@@ -235,9 +241,14 @@ if (!result || result.status !== 'SUBMITTED' || result.attemptId !== submit.atte
 if (!Array.isArray(progress) || progress.length === 0) {
   throw new Error('Progress response does not include any progress snapshot after submit.');
 }
+
+if (!Array.isArray(reviewItems) || reviewItems.length === 0) {
+  throw new Error('Review response does not include any item after manual bookmark.');
+}
 NODE
 
 request 'Web FE top' GET "${WEB_BASE_URL}/engineer-license-lab/fe"
 request 'Web FE practice' GET "${WEB_BASE_URL}/engineer-license-lab/fe/practice/fe-free-sample-set"
+request 'Web FE dashboard' GET "${WEB_BASE_URL}/engineer-license-lab/fe/dashboard"
 
 echo 'Smoke checks completed.'
