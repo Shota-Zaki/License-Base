@@ -18,6 +18,23 @@
 - ブラウザ確認
 - スマホ幅確認
 
+## 0. 事前確認
+
+```bash
+node -v
+corepack --version
+pnpm -v
+docker --version
+docker compose version
+```
+
+pnpm が未導入の場合は、Node 付属の Corepack を有効化してから再確認する。
+
+```bash
+corepack enable
+pnpm -v
+```
+
 ## 1. 依存関係
 
 ```bash
@@ -38,6 +55,12 @@ cp env.example .env
 
 ```bash
 docker compose -f docker-compose.local.yml up -d
+```
+
+DBコンテナの状態を確認する。
+
+```bash
+docker compose -f docker-compose.local.yml ps
 ```
 
 ## 4. Prisma
@@ -72,6 +95,14 @@ bash tools/license_base_smoke.sh
 - `/engineer-license-lab/fe`
 - `/engineer-license-lab/fe/practice/fe-free-sample-set`
 
+smokeスクリプトの機械判定対象:
+
+- 演習取得レスポンスに問題ID・選択肢IDが含まれる
+- 提出前の演習取得レスポンスに正誤・正答・解説用フィールドが含まれない
+- 演習取得レスポンスから抽出した `questionId` / `choiceId` で採点APIへPOSTできる
+- 採点レスポンスの `totalCount` / `correctCount` / `scorePercent` が結果行と整合する
+- 採点後に正答選択肢と解説が返る
+
 ## 7. ブラウザ確認
 
 PC幅:
@@ -98,4 +129,5 @@ PC幅:
 - seed後に5問のサンプル演習が表示される
 - 回答前に正答・解説が表示されない
 - 提出後に採点結果・正答・解説が表示される
+- `bash tools/license_base_smoke.sh` が最後まで成功する
 - PC幅とスマホ幅で主要導線が崩れない
