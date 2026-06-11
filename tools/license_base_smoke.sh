@@ -3,10 +3,19 @@ set -euo pipefail
 
 API_BASE_URL="${API_BASE_URL:-http://localhost:4000/v1}"
 WEB_BASE_URL="${WEB_BASE_URL:-http://localhost:3000}"
+SMOKE_USER_EMAIL="${SMOKE_USER_EMAIL:-mvp-smoke@example.test}"
 TMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/license-base-smoke.XXXXXX")"
 PRACTICE_SET_RESPONSE="${TMP_DIR}/practice-set.json"
 GRADE_REQUEST="${TMP_DIR}/grade-request.json"
 GRADE_RESPONSE="${TMP_DIR}/grade-response.json"
+EMPTY_REQUEST="${TMP_DIR}/empty-request.json"
+ATTEMPT_REQUEST="${TMP_DIR}/attempt-request.json"
+ATTEMPT_RESPONSE="${TMP_DIR}/attempt.json"
+ATTEMPT_ID_FILE="${TMP_DIR}/attempt-id.txt"
+SAVE_ANSWERS_RESPONSE="${TMP_DIR}/save-answers.json"
+SUBMIT_RESPONSE="${TMP_DIR}/submit.json"
+ATTEMPT_RESULT_RESPONSE="${TMP_DIR}/attempt-result.json"
+PROGRESS_RESPONSE="${TMP_DIR}/progress.json"
 SMOKE_RESPONSE="${TMP_DIR}/response.txt"
 
 cleanup() {
@@ -47,15 +56,49 @@ request() {
   echo
 }
 
+auth_request() {
+  local label="$1"
+  local method="$2"
+  local url="$3"
+  local body_file="${4:-}"
+  local output_file="${5:-${SMOKE_RESPONSE}}"
+
+  echo "==> ${label}"
+  if [[ "${method}" == "POST" ]]; then
+    curl --fail --show-error --silent \
+      --request POST \
+      --header 'Content-Type: application/json' \
+      --header "x-user-email: ${SMOKE_USER_EMAIL}" \
+      --data "@${body_file}" \
+      "${url}" > "${output_file}"
+  elif [[ "${method}" == "GET" ]]; then
+    curl --fail --show-error --silent \
+      --header "x-user-email: ${SMOKE_USER_EMAIL}" \
+      "${url}" > "${output_file}"
+  else
+    echo "ERROR: unsupported HTTP method: ${method}" >&2
+    exit 2
+  fi
+  head -c 1200 "${output_file}"
+  echo
+  echo
+}
+
 require_command curl
 require_command node
 
+printf '{}\n' > "${EMPTY_REQUEST}"
+printf '{"practiceSetId":"fe-free-sample-set"}\n' > "${ATTEMPT_REQUEST}"
+
 echo "API_BASE_URL=${API_BASE_URL}"
 echo "WEB_BASE_URL=${WEB_BASE_URL}"
+echo "SMOKE_USER_EMAIL=${SMOKE_USER_EMAIL}"
 
 request 'API health' GET "${API_BASE_URL}/health"
 request 'FE course' GET "${API_BASE_URL}/courses/fe-practice-lab"
 request 'FE sample practice set' GET "${API_BASE_URL}/practice-sets/fe-free-sample-set" '' "${PRACTICE_SET_RESPONSE}"
+request 'Plans' GET "${API_BASE_URL}/plans"
+auth_request 'My entitlements' GET "${API_BASE_URL}/me/entitlements"
 
 node --input-type=module - "${PRACTICE_SET_RESPONSE}" "${GRADE_REQUEST}" <<'NODE'
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -147,6 +190,50 @@ for (const row of result.results) {
   if (!row.explanation?.bodyMd) {
     throw new Error(`Grade result for ${row.questionId} does not include explanation.`);
   }
+}
+NODE
+
+auth_request 'Start attempt' POST "${API_BASE_URL}/attempts" "${ATTEMPT_REQUEST}" "${ATTEMPT_RESPONSE}"
+
+node --input-type=module - "${ATTEMPT_RESPONSE}" "${ATTEMPT_ID_FILE}" <<'NODE'
+import { readFileSync, writeFileSync } from 'node:fs';
+
+const [, , inputPath, outputPath] = process.argv;
+const payload = JSON.parse(readFileSync(inputPath, 'utf8'));
+const attempt = payload?.data;
+
+if (!attempt?.id || attempt.status !== 'IN_PROGRESS') {
+  throw new Error('Attempt response does not include an in-progress attempt id.');
+}
+
+writeFileSync(outputPath, attempt.id);
+NODE
+
+ATTEMPT_ID="$(cat "${ATTEMPT_ID_FILE}")"
+auth_request 'Save attempt answers' POST "${API_BASE_URL}/attempts/${ATTEMPT_ID}/answers" "${GRADE_REQUEST}" "${SAVE_ANSWERS_RESPONSE}"
+auth_request 'Submit attempt' POST "${API_BASE_URL}/attempts/${ATTEMPT_ID}/submit" "${EMPTY_REQUEST}" "${SUBMIT_RESPONSE}"
+auth_request 'Attempt result' GET "${API_BASE_URL}/attempts/${ATTEMPT_ID}/result" '' "${ATTEMPT_RESULT_RESPONSE}"
+auth_request 'My progress' GET "${API_BASE_URL}/me/progress" '' "${PROGRESS_RESPONSE}"
+auth_request 'My review items' GET "${API_BASE_URL}/me/review-items"
+
+node --input-type=module - "${SUBMIT_RESPONSE}" "${ATTEMPT_RESULT_RESPONSE}" "${PROGRESS_RESPONSE}" <<'NODE'
+import { readFileSync } from 'node:fs';
+
+const [, , submitPath, resultPath, progressPath] = process.argv;
+const submit = JSON.parse(readFileSync(submitPath, 'utf8'))?.data;
+const result = JSON.parse(readFileSync(resultPath, 'utf8'))?.data;
+const progress = JSON.parse(readFileSync(progressPath, 'utf8'))?.data;
+
+if (!submit || submit.status !== 'SUBMITTED' || !Array.isArray(submit.results) || submit.results.length === 0) {
+  throw new Error('Submit response does not include submitted results.');
+}
+
+if (!result || result.status !== 'SUBMITTED' || result.attemptId !== submit.attemptId) {
+  throw new Error('Attempt result response does not match the submitted attempt.');
+}
+
+if (!Array.isArray(progress) || progress.length === 0) {
+  throw new Error('Progress response does not include any progress snapshot after submit.');
 }
 NODE
 
