@@ -53,7 +53,17 @@ jobs:
           if-no-files-found: ignore
 
       - name: Build
-        run: pnpm build
+        run: |
+          set -o pipefail
+          pnpm build 2>&1 | tee /tmp/license-base-build.log
+
+      - name: Upload build diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-diagnostics
+          path: /tmp/license-base-build.log
+          if-no-files-found: ignore
 
   integration:
     runs-on: ubuntu-latest
